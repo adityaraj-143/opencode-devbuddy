@@ -11,12 +11,19 @@ import DiffViewer from "./system/diff-viewer"
 import Notifications from "./system/notifications"
 import PluginManager from "./system/plugins"
 import WhichKey from "./system/which-key"
-import { plugin as DevIntelPlugin } from "@opencode-ai/devintel/tui"
 
 export type BuiltinTuiPlugin = Omit<TuiPluginModule, "id"> & {
   id: string
   tui: TuiPlugin
   enabled?: boolean
+}
+
+const DevIntelPlugin: BuiltinTuiPlugin = {
+  id: "internal:devintel",
+  tui: async (...args: Parameters<TuiPlugin>) => {
+    const { plugin } = await import("@opencode-ai/devintel/tui")
+    return plugin.tui(...args)
+  },
 }
 
 export function createBuiltinPlugins(options: { experimentalEventSystem: boolean }): BuiltinTuiPlugin[] {
