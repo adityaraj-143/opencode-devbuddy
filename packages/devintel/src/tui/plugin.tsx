@@ -3,10 +3,11 @@ import { ProjectList } from "./project-list"
 
 export const DevIntelTuiPlugin: TuiPlugin = async (api: TuiPluginApi) => {
   api.slots.register({
-    name: "sidebar_content",
-    mode: "append",
-    render() {
-      return <ProjectList api={api} />
+    order: 200,
+    slots: {
+      sidebar_content() {
+        return <ProjectList api={api} />
+      },
     },
   })
 }
