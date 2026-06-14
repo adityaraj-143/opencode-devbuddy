@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json.schemastore.org/package.json",
+  "version": "1.17.4",
+  "name": "@opencode-ai/devintel",
+  "type": "module",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "typecheck": "tsgo --noEmit"
+  },
+  "exports": {
+    ".": "./src/index.ts",
+    "./tui": "./src/tui/plugin.tsx"
+  },
+  "devDependencies": {
+    "@tsconfig/bun": "catalog:",
+    "@types/bun": "catalog:",
+    "@types/node": "catalog:",
+    "@opentui/core": "catalog:",
+    "@opentui/solid": "catalog:"
+  },
+  "dependencies": {
+    "@opencode-ai/core": "workspace:*",
+    "@opencode-ai/effect-drizzle-sqlite": "workspace:*",
+    "@opencode-ai/plugin": "workspace:*",
+    "@effect/sql-sqlite-bun": "catalog:",
+    "effect": "catalog:",
+    "drizzle-orm": "catalog:",
+    "glob": "13.0.5"
+  }
+}
