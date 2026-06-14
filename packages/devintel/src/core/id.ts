@@ -21,10 +21,6 @@ export function createID(prefix: string): string {
   return `${prefix}_${ascendingTimestamp()}`
 }
 
-export const ProjectID = () => createID("dip")
-export const MemoryID = () => createID("dim")
-export const SessionID = () => createID("dis")
-export const ActivityID = () => createID("dia")
-export const TaskID = () => createID("dit")
-export const DecisionID = () => createID("did")
-export const EmbeddingID = () => createID("die")
+export function projectID(): string {
+  return createID("dip")
+}

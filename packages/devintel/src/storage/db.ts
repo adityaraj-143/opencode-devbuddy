@@ -4,7 +4,7 @@ import { sql } from "drizzle-orm"
 import { Context, Effect, Layer } from "effect"
 import { SqliteClient } from "@effect/sql-sqlite-bun"
 import { EffectDrizzleSqlite } from "@opencode-ai/effect-drizzle-sqlite"
-import { DevIntelMigration } from "./migration"
+import { applyMigrations } from "./migration"
 import { join } from "path"
 import { Global } from "@opencode-ai/core/global"
 
@@ -34,9 +34,9 @@ const initLayer = Layer.effect(
       sql`SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'`,
     )
     if (!tables.some((t) => t.name === "dev_intel_project")) {
-      yield* DevIntelMigration.applyInitial(db)
+      yield* applyMigrations(db)
     } else {
-      yield* DevIntelMigration.applyPending(db)
+      yield* applyMigrations(db)
     }
 
     return { db }

@@ -1,9 +1,7 @@
-export * as DevIntelMigration from "./migration"
-
 import { sql } from "drizzle-orm"
 import { Effect } from "effect"
 import type { EffectDrizzleSqlite } from "@opencode-ai/effect-drizzle-sqlite"
-import { initialSchema } from "./migrations/001_initial"
+import { initialSchema } from "./migrations/001_project_table"
 
 type Database = EffectDrizzleSqlite.EffectSQLiteDatabase
 type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0]
@@ -11,25 +9,7 @@ type Migration = { id: string; up: (tx: Transaction) => Effect.Effect<void> }
 
 const migrations: Migration[] = [initialSchema]
 
-export function applyInitial(db: Database) {
-  return Effect.gen(function* () {
-    yield* db.run(
-      sql`CREATE TABLE IF NOT EXISTS ${sql.identifier("dev_intel_migration")} (id TEXT PRIMARY KEY, time_completed INTEGER NOT NULL)`,
-    )
-    for (const m of migrations) {
-      yield* db.transaction((tx) =>
-        Effect.gen(function* () {
-          yield* m.up(tx)
-          yield* tx.run(
-            sql`INSERT INTO ${sql.identifier("dev_intel_migration")} (id, time_completed) VALUES (${m.id}, ${Date.now()})`,
-          )
-        }),
-      )
-    }
-  })
-}
-
-export function applyPending(db: Database) {
+export function applyMigrations(db: Database) {
   return Effect.gen(function* () {
     yield* db.run(
       sql`CREATE TABLE IF NOT EXISTS ${sql.identifier("dev_intel_migration")} (id TEXT PRIMARY KEY, time_completed INTEGER NOT NULL)`,
