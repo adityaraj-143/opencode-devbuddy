@@ -3,7 +3,10 @@ export * as DevIntelProjectStore from "./project-store"
 import { Effect } from "effect"
 import { DevIntelProjectTable } from "./schema.sql"
 import { DevIntelDb } from "./db"
+import type { InferSelectModel } from "drizzle-orm"
 import { eq } from "drizzle-orm"
+
+type ProjectRowRaw = InferSelectModel<typeof DevIntelProjectTable>
 
 export interface ProjectRow {
   id: string
@@ -36,7 +39,7 @@ function rowToProject(row: typeof DevIntelProjectTable.$inferSelect): ProjectRow
 export function findAll() {
   return Effect.gen(function* () {
     const { db } = yield* DevIntelDb.Service
-    const rows = yield* db.all(db.select().from(DevIntelProjectTable))
+    const rows = yield* db.all<ProjectRowRaw>(db.select().from(DevIntelProjectTable))
     return rows.map(rowToProject)
   })
 }
@@ -44,7 +47,7 @@ export function findAll() {
 export function findById(id: string) {
   return Effect.gen(function* () {
     const { db } = yield* DevIntelDb.Service
-    const row = yield* db.get(db.select().from(DevIntelProjectTable).where(eq(DevIntelProjectTable.id, id)))
+    const row = yield* db.get<ProjectRowRaw>(db.select().from(DevIntelProjectTable).where(eq(DevIntelProjectTable.id, id)))
     return row ? rowToProject(row) : undefined
   })
 }
@@ -52,7 +55,7 @@ export function findById(id: string) {
 export function findByWorktree(worktreePath: string) {
   return Effect.gen(function* () {
     const { db } = yield* DevIntelDb.Service
-    const row = yield* db.get(
+    const row = yield* db.get<ProjectRowRaw>(
       db.select().from(DevIntelProjectTable).where(eq(DevIntelProjectTable.worktree_path, worktreePath)),
     )
     return row ? rowToProject(row) : undefined

@@ -5,7 +5,7 @@ import { initialSchema } from "./migrations/001_project_table"
 
 type Database = EffectDrizzleSqlite.EffectSQLiteDatabase
 type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0]
-type Migration = { id: string; up: (tx: Transaction) => Effect.Effect<void> }
+type Migration = { id: string; up: (tx: Transaction) => Effect.Effect<void, unknown, unknown> }
 
 const migrations: Migration[] = [initialSchema]
 

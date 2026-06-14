@@ -20,4 +20,4 @@ export const initialSchema = {
       `)
     })
   },
-} satisfies { id: string; up: (tx: any) => Effect.Effect<void> }
+} satisfies { id: string; up: (tx: any) => Effect.Effect<void, unknown, unknown> }
