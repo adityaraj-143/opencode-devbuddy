@@ -16,7 +16,7 @@ export function observe() {
           if (!location || !("directory" in location)) return
           const directory = (location as { directory: string }).directory
           yield* projects.ensureRegistered(directory)
-        }),
+        }) as Effect.Effect<void>,
       ),
       (unsubscribe) => unsubscribe,
     )

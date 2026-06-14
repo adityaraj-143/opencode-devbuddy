@@ -11,9 +11,9 @@ const observerLayer = Layer.effectDiscard(
   }),
 )
 
-export const layer = Layer.mergeAll(
+export const layer: Layer.Layer<any, never, never> = Layer.mergeAll(
   DevIntelDb.defaultLayer,
   Layer.effect(DevIntelProjects.Service, DevIntelProjects.layer),
 ).pipe(
   Layer.provideMerge(observerLayer),
-)
+) as any
