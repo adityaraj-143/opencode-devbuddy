@@ -2,12 +2,13 @@ import { sql } from "drizzle-orm"
 import { Effect } from "effect"
 import type { EffectDrizzleSqlite } from "@opencode-ai/effect-drizzle-sqlite"
 import { initialSchema } from "./migrations/001_project_table"
+import { sessionSchema } from "./migrations/002_dev_intel_session"
 
 type Database = EffectDrizzleSqlite.EffectSQLiteDatabase
 type Transaction = Parameters<Parameters<Database["transaction"]>[0]>[0]
 type Migration = { id: string; up: (tx: Transaction) => Effect.Effect<void, unknown, unknown> }
 
-const migrations: Migration[] = [initialSchema]
+const migrations: Migration[] = [initialSchema, sessionSchema]
 
 export function applyMigrations(db: Database) {
   return Effect.gen(function* () {

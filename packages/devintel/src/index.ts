@@ -3,6 +3,7 @@ export { DevIntelProjectStore } from "./storage/project-store"
 export { DevIntelProjects } from "./projects/registry"
 export { DevIntelScanner } from "./projects/scanner"
 export { DevIntelProjectMemory } from "./memory/project-memory"
+export { DevIntelSessionTracker } from "./sessions/tracker"
 export type { ProjectRow } from "./storage/project-store"
 export type { ProjectMeta } from "./core/types"
 export type {
@@ -13,3 +14,4 @@ export type {
   Note,
   ProjectMemory,
 } from "./memory/types"
+export type { DevIntelSession } from "./sessions/types"
