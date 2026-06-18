@@ -2,7 +2,7 @@
 
 ## What This Repository Is
 
-OpenCode is an open-source AI-powered coding agent that runs locally. It provides a terminal UI (TUI), web app, Electron desktop app, headless API server, and cloud console. This repository is a fork/buddy project for integrating Dev-Intel (repository intelligence) on top of OpenCode.
+OpenCode is an open-source AI-powered coding agent that runs locally. It provides a terminal UI (TUI), web app, Electron desktop app, headless API server, and cloud console. This repository is a fork/buddy project for integrating Dev-Buddy (repository intelligence) on top of OpenCode.
 
 **License:** MIT
 **Package Manager:** Bun 1.3.14

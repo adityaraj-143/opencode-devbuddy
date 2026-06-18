@@ -1,16 +1,16 @@
-# Phase 1: Dev-Intel Project Registry — Complete Summary
+# Phase 1: Dev-Buddy Project Registry — Complete Summary
 
 ## Overview
 
-Phase 1 establishes the **Project Registry**, a persistent SQLite-backed system that automatically discovers and tracks repositories the developer works on. It is the foundational layer for the Dev-Intel intelligence system, enabling future phases to associate per-project state, activity history, and behavioral insights with known worktrees.
+Phase 1 establishes the **Project Registry**, a persistent SQLite-backed system that automatically discovers and tracks repositories the developer works on. It is the foundational layer for the Dev-Buddy intelligence system, enabling future phases to associate per-project state, activity history, and behavioral insights with known worktrees.
 
-No other Dev-Intel phases are required to deliver this — it stands alone.
+No other Dev-Buddy phases are required to deliver this — it stands alone.
 
 ---
 
 ## What Was Built
 
-### Package: `@opencode-ai/devintel` (`packages/devintel/`)
+### Package: `@opencode-ai/devbuddy` (`packages/devbuddy/`)
 
 A new workspace package with four architectural layers:
 
@@ -21,7 +21,7 @@ A new workspace package with four architectural layers:
 - Registers the `@effect/sql-sqlite-bun` client and wraps it with `EffectDrizzleSqlite.makeWithDefaults()` for typed Drizzle queries.
 - Runs auto-migrations on startup if the `dev_intel_project` table is missing.
 - Exports `layerFromPath(filename)` for testing (in-memory with `:memory:`) and `defaultLayer` for production (stores at the OpenCode data directory).
-- Service tag: `DevIntelDb.Service` (`@opencode/v2/devintel/Database`)
+- Service tag: `DevBuddyDb.Service` (`@opencode/v2/devbuddy/Database`)
 
 **`schema.sql.ts`** — Drizzle table definition.
 - `dev_intel_project` table with columns: `id` (text PK), `worktree_path` (text, unique), `name` (text), `opencode_project_id` (text, nullable), `vcs_type` (text), `vcs_remote` (text, nullable), `created_at` (integer), `last_opened_at` (integer).
@@ -44,8 +44,8 @@ A new workspace package with four architectural layers:
 **`scanner.ts`** — Worktree scanner.
 - `scan(directory)` — async function wrapped in `Effect.promise` that:
   - Checks for `.git` or `.hg` to detect VCS type
-  - Checks for `.devintel` or `.opencode` to detect Dev-Intel presence
-  - Returns `ScanResult` with `name`, `hasDevIntel`, `vcsType`, and `vcsRemote`
+  - Checks for `.devbuddy` or `.opencode` to detect Dev-Buddy presence
+  - Returns `ScanResult` with `name`, `hasDevBuddy`, `vcsType`, and `vcsRemote`
 
 **`registry.ts`** — Public API service.
 - Interface exposes four methods:
@@ -53,7 +53,7 @@ A new workspace package with four architectural layers:
   - `list()` — returns all registered projects.
   - `get(projectID)` — returns a single project or `undefined`.
   - `ensureRegistered(worktreePath)` — idempotent: if a project already exists for this worktree, it re-upserts (touching `last_opened_at`) and returns the existing ID; otherwise, it registers a new one.
-- Service tag: `DevIntelProjects.Service` (`@opencode/v2/devintel/Projects`)
+- Service tag: `DevBuddyProjects.Service` (`@opencode/v2/devbuddy/Projects`)
 - Uses `Effect.fn` for named/traced effect functions.
 
 ### 3. Session Observer (`src/observer/`)
@@ -67,8 +67,8 @@ A new workspace package with four architectural layers:
 ### 4. TUI Plugin (`src/tui/`)
 
 **`plugin.tsx`** — TUI plugin module.
-- Exports `plugin = { id: "internal:devintel", tui: DevIntelTuiPlugin }`.
-- `DevIntelTuiPlugin` registers a `sidebar_content` slot via `api.slots.register()` with `order: 200`.
+- Exports `plugin = { id: "internal:devbuddy", tui: DevBuddyTuiPlugin }`.
+- `DevBuddyTuiPlugin` registers a `sidebar_content` slot via `api.slots.register()` with `order: 200`.
 - The slot renders a `<ProjectList>` component.
 
 **`project-list.tsx`** — Sidebar component.
@@ -80,18 +80,18 @@ A new workspace package with four architectural layers:
 ### Supporting Files
 
 - **`src/core/id.ts`** — `createID(prefix)` generates ULID-based IDs (e.g., `dip_01J...`).
-- **`src/core/errors.ts`** — Tagged error classes (e.g., `DevIntelProjectNotFound`).
+- **`src/core/errors.ts`** — Tagged error classes (e.g., `DevBuddyProjectNotFound`).
 - **`src/core/types.ts`** — Shared type definitions (`ProjectMeta`).
 - **`src/schema.ts`** — Re-exports the Drizzle schema for external use.
 - **`src/index.ts`** — Package entry point exporting all public APIs.
-- **`src/layer.ts`** — Composes `DevIntelDb` + `DevIntelProjects` + observer layers into a single `DevIntelLayer.layer`.
+- **`src/layer.ts`** — Composes `DevBuddyDb` + `DevBuddyProjects` + observer layers into a single `DevBuddyLayer.layer`.
 
 ### Integration Points
 
 Two files in the existing codebase were touched:
 
-1. **`packages/opencode/src/effect/app-runtime.ts`** — Removed the static `import { DevIntelLayer }` (was causing SIGABRT at startup). The layer will be loaded on-demand by the TUI plugin.
-2. **`packages/tui/src/feature-plugins/builtins.ts`** — Added a lazy `DevIntelPlugin` wrapper with a dynamic `import()` inside the `tui()` function, so `@opencode-ai/devintel/tui` and its `@opentui` dependencies are only loaded when the plugin is actually activated (not at app startup).
+1. **`packages/opencode/src/effect/app-runtime.ts`** — Removed the static `import { DevBuddyLayer }` (was causing SIGABRT at startup). The layer will be loaded on-demand by the TUI plugin.
+2. **`packages/tui/src/feature-plugins/builtins.ts`** — Added a lazy `DevBuddyPlugin` wrapper with a dynamic `import()` inside the `tui()` function, so `@opencode-ai/devbuddy/tui` and its `@opentui` dependencies are only loaded when the plugin is actually activated (not at app startup).
 
 ---
 
@@ -105,7 +105,7 @@ Two files in the existing codebase were touched:
 
 ### Why `Effect.fn` for registry methods?
 
-Named effects improve observability — traces and error messages show `DevIntelProjects.register` instead of a generic `Effect.gen`. This follows the codebase convention in `AGENTS.md`.
+Named effects improve observability — traces and error messages show `DevBuddyProjects.register` instead of a generic `Effect.gen`. This follows the codebase convention in `AGENTS.md`.
 
 ### Why lazy-load the TUI plugin?
 
@@ -143,7 +143,7 @@ The strict Effect type system required matching error (`never`) and context (`ne
 ## Files Changed
 
 ### New Files (34)
-All under `packages/devintel/`:
+All under `packages/devbuddy/`:
 - `package.json`, `tsconfig.json`
 - `src/index.ts`, `src/schema.ts`, `src/layer.ts`
 - `src/core/id.ts`, `src/core/errors.ts`, `src/core/types.ts`
@@ -157,28 +157,28 @@ All under `packages/devintel/`:
 Plus lockfile entry in `bun.lock`.
 
 ### Modified Files (2)
-- `packages/opencode/src/effect/app-runtime.ts` — removed static devintel import
-- `packages/tui/src/feature-plugins/builtins.ts` — replaced static devintel import with lazy dynamic import
+- `packages/opencode/src/effect/app-runtime.ts` — removed static devbuddy import
+- `packages/tui/src/feature-plugins/builtins.ts` — replaced static devbuddy import with lazy dynamic import
 
 ---
 
 ## Commits (15 total)
 
 ```
-e3d5226e6 fix: lazy-load devintel to avoid SIGABRT at startup
-847da3eac fix(devintel): fix type errors
-b1d6f3f43 fix(devintel): fix type errors and plugin API shape
-dfac1ddf5 fix(devintel): correct TUI slot registration API shape
-1d2759712 chore(devintel): cleanup scaffolded files and fix deps
-4e838d91b feat(devintel): integrate into OpenCode runtime
-9c1cf4cbf feat(devintel): add TUI plugin
-b311216d6 chore(devintel): scaffold placeholder directories
-3d393be9c feat(devintel): add memory, activity, and intelligence modules
-1ba33f044 feat(devintel): add session tracking and observer
-fc4f755a9 feat(devintel): add project registry and scanner
-3c979bfbd feat(devintel): add storage foundation
-6e7e52746 chore(devintel): add core primitives
-81a5cf16c chore(devintel): initialize package
+e3d5226e6 fix: lazy-load devbuddy to avoid SIGABRT at startup
+847da3eac fix(devbuddy): fix type errors
+b1d6f3f43 fix(devbuddy): fix type errors and plugin API shape
+dfac1ddf5 fix(devbuddy): correct TUI slot registration API shape
+1d2759712 chore(devbuddy): cleanup scaffolded files and fix deps
+4e838d91b feat(devbuddy): integrate into OpenCode runtime
+9c1cf4cbf feat(devbuddy): add TUI plugin
+b311216d6 chore(devbuddy): scaffold placeholder directories
+3d393be9c feat(devbuddy): add memory, activity, and intelligence modules
+1ba33f044 feat(devbuddy): add session tracking and observer
+fc4f755a9 feat(devbuddy): add project registry and scanner
+3c979bfbd feat(devbuddy): add storage foundation
+6e7e52746 chore(devbuddy): add core primitives
+81a5cf16c chore(devbuddy): initialize package
 da65e972c docs: add codebase documentation files
 ```
 
@@ -187,8 +187,8 @@ da65e972c docs: add codebase documentation files
 ## Running the Tests
 
 ```bash
-cd packages/devintel
+cd packages/devbuddy
 bun test test/smoke.test.ts
 ```
 
-Tests use an in-memory SQLite database (`:memory:`) and a `ManagedRuntime` to provide the DevIntelDb + DevIntelProjects layers. 4 tests, all passing.
+Tests use an in-memory SQLite database (`:memory:`) and a `ManagedRuntime` to provide the DevBuddyDb + DevBuddyProjects layers. 4 tests, all passing.

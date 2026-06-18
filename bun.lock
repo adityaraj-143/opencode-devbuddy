@@ -382,8 +382,8 @@
         "@parcel/watcher-win32-x64": "2.5.1",
       },
     },
-    "packages/devintel": {
-      "name": "@opencode-ai/devintel",
+    "packages/devbuddy": {
+      "name": "@opencode-ai/devbuddy",
       "dependencies": {
         "@effect/sql-sqlite-bun": "catalog:",
         "@opencode-ai/core": "workspace:*",
@@ -1802,7 +1802,7 @@
 
     "@opencode-ai/desktop": ["@opencode-ai/desktop@workspace:packages/desktop"],
 
-    "@opencode-ai/devintel": ["@opencode-ai/devintel@workspace:packages/devintel"],
+    "@opencode-ai/devbuddy": ["@opencode-ai/devbuddy@workspace:packages/devbuddy"],
 
     "@opencode-ai/effect-drizzle-sqlite": ["@opencode-ai/effect-drizzle-sqlite@workspace:packages/effect-drizzle-sqlite"],
 

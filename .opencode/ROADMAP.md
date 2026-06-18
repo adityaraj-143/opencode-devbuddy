@@ -1,4 +1,4 @@
-# Dev-Intel Roadmap
+# Dev-Buddy Roadmap
 
 ## Phase 0
 
@@ -28,7 +28,7 @@ Project Registry
 
 Goal:
 
-Track repositories known to Dev-Intel.
+Track repositories known to Dev-Buddy.
 
 Features:
 
@@ -39,7 +39,7 @@ Features:
 
 Success Criteria:
 
-Dev-Intel knows every repository the user works on.
+Dev-Buddy knows every repository the user works on.
 
 ---
 
@@ -53,7 +53,7 @@ Create persistent project memory.
 
 Features:
 
-- .devintel directory
+- .devbuddy directory
 - project.json
 - tasks.json
 - decisions.json
@@ -82,7 +82,7 @@ Features:
 
 Success Criteria:
 
-Dev-Intel knows what the developer is doing.
+Dev-Buddy knows what the developer is doing.
 
 ---
 

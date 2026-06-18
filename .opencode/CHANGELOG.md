@@ -1,4 +1,4 @@
-# Dev-Intel Changelog
+# Dev-Buddy Changelog
 
 ## 2026-06-13 — Initial Repository Exploration
 
@@ -13,9 +13,9 @@
 - `AGENT_FLOW.md` — AI execution pipeline (V1 and V2)
 - `MCP_FLOW.md` — MCP and tool infrastructure
 - `STORAGE_FLOW.md` — Persistence layer documentation
-- `EXTENSION_POINTS.md` — Safe Dev-Intel integration locations
+- `EXTENSION_POINTS.md` — Safe Dev-Buddy integration locations
 - `PROJECT_CONTEXT.md` — Living repository understanding
 - `DECISIONS.md` — Recorded architectural decisions
 - `ARCHITECTURE_DIAGRAMS.md` — ASCII architecture diagrams
 - `CHANGELOG.md` — This file: modification tracker
-- `DEVINTEL_INTEGRATION_PLAN.md` — Integration plan for Dev-Intel
+- `DEVINTEL_INTEGRATION_PLAN.md` — Integration plan for Dev-Buddy

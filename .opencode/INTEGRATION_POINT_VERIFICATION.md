@@ -11,17 +11,17 @@ Every extension point from `EXTENSION_POINTS.md` verified against actual source 
 | ✅ VERIFIED | Hook/symbol exists at stated location; API is public |
 | ⚠️ DISCREPANCY | Exists but differs from doc in mode, visibility, or behavior |
 | ❌ NOT FOUND | Does not exist at stated location |
-| 🔲 NOT USED (intentionally deferred) | Dev-Intel doesn't use this; no modification needed |
+| 🔲 NOT USED (intentionally deferred) | Dev-Buddy doesn't use this; no modification needed |
 
 ---
 
 ## 1. Session Start Hooks
 
-### Project Open Detection (all 🔲 NOT USED — Dev-Intel uses EventV2.listen instead)
+### Project Open Detection (all 🔲 NOT USED — Dev-Buddy uses EventV2.listen instead)
 
 | Point | File | Verification |
 |-------|------|-------------|
-| `InstanceState.make()` | `packages/opencode/src/effect/instance-state.ts` | 🔲 Not read — Dev-Intel uses EventV2 event observation pattern |
+| `InstanceState.make()` | `packages/opencode/src/effect/instance-state.ts` | 🔲 Not read — Dev-Buddy uses EventV2 event observation pattern |
 | `InstanceStore.load()` | `packages/opencode/src/project/instance-store.ts` | 🔲 Not read |
 | `Project.bootstrap()` | `packages/opencode/src/project/bootstrap.ts` | 🔲 Not read |
 | `Location.Service` | `packages/core/src/location.ts` | 🔲 Not read |
@@ -36,7 +36,7 @@ Every extension point from `EXTENSION_POINTS.md` verified against actual source 
 | `SessionRunCoordinator.run()` | `packages/core/src/session/run-coordinator.ts` | ✅ Confirmed as exported API (read by reference) |
 | `SessionRunner.run()` | `packages/core/src/session/runner/llm.ts` | ✅ Confirmed as exported API (read by reference) |
 
-**Dev-Intel approach**: Uses `EventV2.listen()` subscribing to `SessionEvent.PromptLifecycle.Admitted` events at `packages/devintel/src/observer/session-observer.ts:13-31`. This is the recommended pattern — async, non-blocking, no core modification.
+**Dev-Buddy approach**: Uses `EventV2.listen()` subscribing to `SessionEvent.PromptLifecycle.Admitted` events at `packages/devbuddy/src/observer/session-observer.ts:13-31`. This is the recommended pattern — async, non-blocking, no core modification.
 
 ---
 
@@ -51,7 +51,7 @@ Every extension point from `EXTENSION_POINTS.md` verified against actual source 
 | `SessionContextEpoch.initialize()` | `packages/core/src/session/context-epoch.ts:42-51` | ✅ Confirmed — `initialize(db, context, sessionID, location, agent)` |
 | `SessionContextEpoch.prepare()` | `packages/core/src/session/context-epoch.ts:54-64` | ✅ Confirmed — `prepare(db, events, context, sessionID, location, agent)` |
 
-**Note**: Phase 7 (Memory Injection via SystemContext) is deferred. When implemented, `SystemContextRegistry.register()` is the correct hook. The `Source<A>` interface at `packages/core/src/system-context/index.ts:32-39` is ready to accept Dev-Intel memory sources.
+**Note**: Phase 7 (Memory Injection via SystemContext) is deferred. When implemented, `SystemContextRegistry.register()` is the correct hook. The `Source<A>` interface at `packages/core/src/system-context/index.ts:32-39` is ready to accept Dev-Buddy memory sources.
 
 ---
 
@@ -76,10 +76,10 @@ Every extension point from `EXTENSION_POINTS.md` verified against actual source 
 | `EventV2.publish()` | `packages/core/src/event.ts` | ✅ **Public API** — Used by core for all durable events. |
 | `Database.Service` | `packages/core/src/database/database.ts` | ✅ **Public API** — Drizzle-accessible. |
 | `SessionStore` | `packages/core/src/session/store.ts` | ✅ **Public API** — Read access for session data. |
-| New Drizzle tables | `packages/devintel/src/storage/schema.sql.ts` | ✅ **IMPLEMENTED** — 5 tables: `dev_intel_project`, `dev_intel_memory_entry`, `dev_intel_session`, `dev_intel_activity`, `dev_intel_developer_profile`. |
-| `Config.Service` | `packages/core/src/config.ts` | 🔲 Not used — Dev-Intel uses its own DB. |
+| New Drizzle tables | `packages/devbuddy/src/storage/schema.sql.ts` | ✅ **IMPLEMENTED** — 5 tables: `dev_intel_project`, `dev_intel_memory_entry`, `dev_intel_session`, `dev_intel_activity`, `dev_intel_developer_profile`. |
+| `Config.Service` | `packages/core/src/config.ts` | 🔲 Not used — Dev-Buddy uses its own DB. |
 
-**Key architectural decision**: Dev-Intel runs its own SQLite database (`devintel.db` in `Global.Path.data`), not namespaced into OpenCode's DB. This avoids touching core migrations. DB layer at `packages/devintel/src/storage/db.ts` uses `@effect/sql-sqlite-bun` with auto-migration.
+**Key architectural decision**: Dev-Buddy runs its own SQLite database (`devbuddy.db` in `Global.Path.data`), not namespaced into OpenCode's DB. This avoids touching core migrations. DB layer at `packages/devbuddy/src/storage/db.ts` uses `@effect/sql-sqlite-bun` with auto-migration.
 
 ---
 
@@ -87,16 +87,16 @@ Every extension point from `EXTENSION_POINTS.md` verified against actual source 
 
 | Slot | File | Verification |
 |------|------|-------------|
-| `sidebar_content` | `packages/tui/src/routes/session/sidebar.tsx:85` | ✅ Confirmed — `<pluginRuntime.Slot name="sidebar_content" session_id={...} />`. No explicit mode, rendering defaults to all registered items. **Dev-Intel uses `mode: "append"` — compatible.** |
+| `sidebar_content` | `packages/tui/src/routes/session/sidebar.tsx:85` | ✅ Confirmed — `<pluginRuntime.Slot name="sidebar_content" session_id={...} />`. No explicit mode, rendering defaults to all registered items. **Dev-Buddy uses `mode: "append"` — compatible.** |
 | `sidebar_title` | `packages/tui/src/routes/session/sidebar.tsx:~49` | 🔲 Not used |
 | `sidebar_footer` | `packages/tui/src/routes/session/sidebar.tsx:90` | ✅ Confirmed — `mode="single_winner"`. 🔲 Not used. |
 | `home_prompt` | `packages/tui/src/routes/home.tsx:82` | ✅ Confirmed — `mode="replace"`. 🔲 Not used. |
 | `home_bottom` | `packages/tui/src/routes/home.tsx:86` | ✅ Confirmed — no mode specified. 🔲 Not used. |
-| `home_footer` | `packages/tui/src/routes/home.tsx:91` | ⚠️ **DISCREPANCY** — Slot renders with `mode="single_winner"`. Dev-Intel registers with `mode: "append"`. With `single_winner`, the Dev-Intel footer text may not render if another plugin also registers for this slot. **Consider using `home_bottom` instead for guaranteed visibility.** |
+| `home_footer` | `packages/tui/src/routes/home.tsx:91` | ⚠️ **DISCREPANCY** — Slot renders with `mode="single_winner"`. Dev-Buddy registers with `mode: "append"`. With `single_winner`, the Dev-Buddy footer text may not render if another plugin also registers for this slot. **Consider using `home_bottom` instead for guaranteed visibility.** |
 | `session_prompt`, `session_prompt_right` | `packages/tui/src/routes/session/index.tsx` | 🔲 Not used |
 | `app_bottom` | `packages/tui/src/app.tsx` | 🔲 Not used |
 
-**Dev-Intel TUI plugin** at `packages/devintel/src/tui/plugin.tsx:3-36`:
+**Dev-Buddy TUI plugin** at `packages/devbuddy/src/tui/plugin.tsx:3-36`:
 - ✅ Registers `sidebar_content` slot with session ID display
 - ✅ Registers `home_footer` slot with "Memory tracking active" text
 - ⚠️ `home_footer` may be silenced by `single_winner` mode if other plugins compete
@@ -107,12 +107,12 @@ Every extension point from `EXTENSION_POINTS.md` verified against actual source 
 
 | Point | File | Verification |
 |-------|------|-------------|
-| `EventV2.listen()` | `packages/core/src/event.ts:160,630-635` | ✅ **Public API** — `listen: (listener: Listener) => Effect<Unsubscribe>`. Used by Dev-Intel observer. |
+| `EventV2.listen()` | `packages/core/src/event.ts:160,630-635` | ✅ **Public API** — `listen: (listener: Listener) => Effect<Unsubscribe>`. Used by Dev-Buddy observer. |
 | `EventV2.subscribe()` | `packages/core/src/event.ts` | ✅ **Public API** — Returns Stream. 🔲 Not used (listen is simpler for fire-and-forget). |
 | `EventV2.beforeCommit()` | `packages/core/src/event.ts` | ✅ **Public API** — MODERATE safety (runs in transaction). 🔲 Not used. |
 | `EventV2.project()` | `packages/core/src/event.ts` | ✅ **Public API** — Register a projector. 🔲 Not used. |
 
-**Dev-Intel usage**: `DevIntelSessionObserver.observe()` at `packages/devintel/src/observer/session-observer.ts:9-35` uses `EventV2.listen()` in an `Effect.acquireRelease` scope. The listener filters for `SessionEvent.PromptLifecycle.Admitted` events, then ensures project registration and session tracking.
+**Dev-Buddy usage**: `DevBuddySessionObserver.observe()` at `packages/devbuddy/src/observer/session-observer.ts:9-35` uses `EventV2.listen()` in an `Effect.acquireRelease` scope. The listener filters for `SessionEvent.PromptLifecycle.Admitted` events, then ensures project registration and session tracking.
 
 ---
 
@@ -120,14 +120,14 @@ Every extension point from `EXTENSION_POINTS.md` verified against actual source 
 
 | Point | File | Verification |
 |-------|------|-------------|
-| `AppRuntime` layers | `packages/opencode/src/effect/app-runtime.ts:107` | ✅ **IMPLEMENTED** — `Layer.provideMerge(DevIntelLayer.layer)` added at line 107. Import at line 54. |
-| `Plugin.Service` | `packages/opencode/src/plugin/` | 🔲 Not used — Dev-Intel uses layer injection directly. |
-| `TUI builtins.ts` | `packages/tui/src/feature-plugins/builtins.ts:36` | ✅ **IMPLEMENTED** — `DevIntelPlugin` imported at line 14, added to plugin array at line 36. |
+| `AppRuntime` layers | `packages/opencode/src/effect/app-runtime.ts:107` | ✅ **IMPLEMENTED** — `Layer.provideMerge(DevBuddyLayer.layer)` added at line 107. Import at line 54. |
+| `Plugin.Service` | `packages/opencode/src/plugin/` | 🔲 Not used — Dev-Buddy uses layer injection directly. |
+| `TUI builtins.ts` | `packages/tui/src/feature-plugins/builtins.ts:36` | ✅ **IMPLEMENTED** — `DevBuddyPlugin` imported at line 14, added to plugin array at line 36. |
 
-**Dev-Intel layer wiring** at `packages/devintel/src/layer.ts:1-22`:
-1. `DevIntelDb.defaultLayer` — SQLite DB with auto-migration
-2. `DevIntelProjects.layer` — Project registry service
-3. `DevIntelSessionTracker.layer` — Active session tracking
+**Dev-Buddy layer wiring** at `packages/devbuddy/src/layer.ts:1-22`:
+1. `DevBuddyDb.defaultLayer` — SQLite DB with auto-migration
+2. `DevBuddyProjects.layer` — Project registry service
+3. `DevBuddySessionTracker.layer` — Active session tracking
 4. `observerLayer` — Wires the EventV2 listener with scoped lifecycle
 
 ---
@@ -139,10 +139,10 @@ Every extension point from `EXTENSION_POINTS.md` verified against actual source 
 | `packages/opencode/src/session/prompt.ts` (V1) | ❌ NOT MODIFIED — 1722 lines of legacy orchestration |
 | `packages/opencode/src/session/processor.ts` (V1) | ❌ NOT MODIFIED — 1084 lines, tightly coupled |
 | `packages/core/src/session/runner/llm.ts` | ❌ NOT MODIFIED — V2 runner left untouched |
-| `packages/opencode/src/effect/app-runtime.ts` | ✅ Only added `DevIntelLayer`, no existing layers modified |
+| `packages/opencode/src/effect/app-runtime.ts` | ✅ Only added `DevBuddyLayer`, no existing layers modified |
 | `packages/core/src/event.ts` | ❌ NOT MODIFIED — Used via public API only |
 | `packages/core/src/config.ts` | ❌ NOT MODIFIED |
-| `packages/core/src/database/migration.ts` | ❌ NOT MODIFIED — Dev-Intel has its own migration chain |
+| `packages/core/src/database/migration.ts` | ❌ NOT MODIFIED — Dev-Buddy has its own migration chain |
 | `packages/core/src/database/schema.gen.ts` | ❌ NOT MODIFIED — Auto-generated |
 | `packages/core/src/database/migration.gen.ts` | ❌ NOT MODIFIED — Auto-generated |
 
@@ -155,7 +155,7 @@ Every extension point from `EXTENSION_POINTS.md` verified against actual source 
 | Project memory injection (SystemContext) | 🔲 Deferred | Phase 7 |
 | Session start detection (EventV2.listen) | ✅ Implemented | Phase 3 |
 | Tool execution observation (EventV2.listen) | 🔲 Deferred | Phase 5 |
-| Dev-Intel persistence (own Drizzle tables) | ✅ Implemented | Phase 1b |
+| Dev-Buddy persistence (own Drizzle tables) | ✅ Implemented | Phase 1b |
 | UI sidebar panel (sidebar_content slot) | ✅ Implemented | Phase 3 |
 | Home page briefing (home_footer slot) | ⚠️ Implemented but `single_winner` risk | Phase 3 |
 | Developer memory (SystemContext.Source) | 🔲 Deferred | Phase 7 |
@@ -165,9 +165,9 @@ Every extension point from `EXTENSION_POINTS.md` verified against actual source 
 
 ## Issues Found
 
-1. **⚠️ `home_footer` slot uses `mode="single_winner"`** at `packages/tui/src/routes/home.tsx:91`. Dev-Intel registers with `mode: "append"`, but the slot rendering only shows one winner. If another plugin targets `home_footer`, Dev-Intel's text may be suppressed. **Recommendation**: Register on `home_bottom` instead, which has no rendering mode restriction.
+1. **⚠️ `home_footer` slot uses `mode="single_winner"`** at `packages/tui/src/routes/home.tsx:91`. Dev-Buddy registers with `mode: "append"`, but the slot rendering only shows one winner. If another plugin targets `home_footer`, Dev-Buddy's text may be suppressed. **Recommendation**: Register on `home_bottom` instead, which has no rendering mode restriction.
 
-2. **✅ No core files modified beyond the 3 planned locations** (`app-runtime.ts` import + provideMerge, `builtins.ts` registration). All Dev-Intel logic is self-contained in `packages/devintel/`.
+2. **✅ No core files modified beyond the 3 planned locations** (`app-runtime.ts` import + provideMerge, `builtins.ts` registration). All Dev-Buddy logic is self-contained in `packages/devbuddy/`.
 
 3. **✅ EventV2.listen lifecycle is correct** — wrapped in `Effect.acquireRelease` with proper unsubscribe on scope finalization.
 

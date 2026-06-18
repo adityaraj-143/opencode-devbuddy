@@ -2,22 +2,22 @@
 
 ## Overview
 
-Phase 3 adds persistent session tracking to Dev-Intel. Every period of developer activity in a project is recorded as a Dev-Intel session in SQLite, tracking what tools were used, which files were touched, how many messages were sent, and which branch was active.
+Phase 3 adds persistent session tracking to Dev-Buddy. Every period of developer activity in a project is recorded as a Dev-Buddy session in SQLite, tracking what tools were used, which files were touched, how many messages were sent, and which branch was active.
 
-This data is stored in the Dev-Intel SQLite database (not `.devintel/` files), maintaining the separation between **project knowledge** (`.devintel/`) and **runtime history** (SQLite).
+This data is stored in the Dev-Buddy SQLite database (not `.devbuddy/` files), maintaining the separation between **project knowledge** (`.devbuddy/`) and **runtime history** (SQLite).
 
 ---
 
 ## What Was Built
 
-### Package: `@opencode-ai/devintel` (`packages/devintel/`)
+### Package: `@opencode-ai/devbuddy` (`packages/devbuddy/`)
 
 Four new modules in `src/sessions/`:
 
 ### 1. Types (`src/sessions/types.ts`)
 
 ```typescript
-interface DevIntelSession {
+interface DevBuddySession {
   id: string              // dis_ prefix
   projectId: string
   startedAt: number
@@ -71,7 +71,7 @@ Data access layer with Effect-based CRUD:
 
 ### 4. Session Tracker (`src/sessions/tracker.ts`)
 
-The main service + event observer, registered as `@opencode/v2/devintel/SessionTracker`.
+The main service + event observer, registered as `@opencode/v2/devbuddy/SessionTracker`.
 
 #### Public API
 
@@ -79,12 +79,12 @@ The main service + event observer, registered as `@opencode/v2/devintel/SessionT
 |--------|-----------|-------------|
 | `startSession` | `(projectId, branch?) => Effect<string>` | Creates a new session. Auto-detects git branch from `.git/HEAD` if not provided. |
 | `endSession` | `(sessionId) => Effect<void>` | Marks session as ended, computes duration. |
-| `getActiveSession` | `(projectId) => Effect<DevIntelSession \| undefined>` | Returns the latest non-ended session for a project. |
+| `getActiveSession` | `(projectId) => Effect<DevBuddySession \| undefined>` | Returns the latest non-ended session for a project. |
 | `recordToolUsage` | `(sessionId, toolName) => Effect<void>` | Records a tool used during the session. Deduplicates. |
 | `recordFileTouch` | `(sessionId, filePath) => Effect<void>` | Records a file touched during the session. Deduplicates. |
 | `recordMessage` | `(sessionId) => Effect<void>` | Increments the message counter. |
-| `attachTask` | `(sessionId, taskId) => Effect<void>` | Associates the session with a task from `.devintel/tasks.json`. |
-| `getRecentSessions` | `(projectId, limit?) => Effect<DevIntelSession[]>` | Returns recent sessions for a project. |
+| `attachTask` | `(sessionId, taskId) => Effect<void>` | Associates the session with a task from `.devbuddy/tasks.json`. |
+| `getRecentSessions` | `(projectId, limit?) => Effect<DevBuddySession[]>` | Returns recent sessions for a project. |
 
 #### Branch Detection
 
@@ -105,7 +105,7 @@ The session tracker registers a second `EventV2.listen()` subscription (independ
 | `session.next.tool.called` | Records the tool name (`event.data.tool`) |
 | `session.next.tool.success` | Records file paths from `event.data.outputPaths` |
 
-All events are filtered by `event.location.directory` to resolve the project ID via `DevIntelProjects.ensureRegistered()`.
+All events are filtered by `event.location.directory` to resolve the project ID via `DevBuddyProjects.ensureRegistered()`.
 
 **No modifications to OpenCode core were required.** All integration is via safe `EventV2.listen()` subscriptions.
 
@@ -117,25 +117,25 @@ All events are filtered by `event.location.directory` to resolve the project ID 
 
 | File | Purpose |
 |------|---------|
-| `packages/devintel/src/sessions/types.ts` | DevIntelSession type |
-| `packages/devintel/src/sessions/schema.sql.ts` | Drizzle table definition |
-| `packages/devintel/src/sessions/store.ts` | Data access layer |
-| `packages/devintel/src/sessions/tracker.ts` | Service + EventV2 observer |
+| `packages/devbuddy/src/sessions/types.ts` | DevBuddySession type |
+| `packages/devbuddy/src/sessions/schema.sql.ts` | Drizzle table definition |
+| `packages/devbuddy/src/sessions/store.ts` | Data access layer |
+| `packages/devbuddy/src/sessions/tracker.ts` | Service + EventV2 observer |
 
 ### Modified Files (4)
 
 | File | Change |
 |------|--------|
-| `packages/devintel/src/storage/migration.ts` | Registered `002_dev_intel_session` migration |
-| `packages/devintel/src/storage/migrations/002_dev_intel_session.ts` | **New** — Migration SQL for `dev_intel_session` table |
-| `packages/devintel/src/index.ts` | Added exports for `DevIntelSessionTracker` and `DevIntelSession` type |
-| `packages/devintel/src/layer.ts` | Added `DevIntelSessionTracker.Service` + `sessionObserverLayer` |
+| `packages/devbuddy/src/storage/migration.ts` | Registered `002_dev_intel_session` migration |
+| `packages/devbuddy/src/storage/migrations/002_dev_intel_session.ts` | **New** — Migration SQL for `dev_intel_session` table |
+| `packages/devbuddy/src/index.ts` | Added exports for `DevBuddySessionTracker` and `DevBuddySession` type |
+| `packages/devbuddy/src/layer.ts` | Added `DevBuddySessionTracker.Service` + `sessionObserverLayer` |
 
 ---
 
 ## Tests
 
-13 tests in `packages/devintel/test/session.test.ts`:
+13 tests in `packages/devbuddy/test/session.test.ts`:
 
 | Test | What It Verifies |
 |------|-----------------|
@@ -167,7 +167,7 @@ Applied automatically by the existing migration runner (same mechanism as Phase 
 
 | Data | Location | Format | Why |
 |------|----------|--------|-----|
-| Session metadata | SQLite (`devintel.db`) | `dev_intel_session` table | Needs queries (active, recent, by project) and joins with project registry |
+| Session metadata | SQLite (`devbuddy.db`) | `dev_intel_session` table | Needs queries (active, recent, by project) and joins with project registry |
 | Session files/tools | SQLite (JSON arrays) | `files_touched`, `tools_used` columns | Simple, no joins needed for MVP; normalized tables can be introduced later |
 | Branch history | SQLite | `active_branch` column | Read from `.git/HEAD` at session start |
 | Task association | SQLite | `current_task_id` column | References `tasks.json` by task ID |
@@ -176,9 +176,9 @@ Applied automatically by the existing migration runner (same mechanism as Phase 
 
 ## Architecture Decisions
 
-### Why SQLite, Not `.devintel/`
+### Why SQLite, Not `.devbuddy/`
 
-Per the integration plan: `.devintel/` = project knowledge (human-editable, version-controllable), SQLite = runtime history (needs queries, aggregations, joins). Sessions are queried by project, recency, and active status — these are DB operations, not file read operations.
+Per the integration plan: `.devbuddy/` = project knowledge (human-editable, version-controllable), SQLite = runtime history (needs queries, aggregations, joins). Sessions are queried by project, recency, and active status — these are DB operations, not file read operations.
 
 ### Why JSON Arrays for Files/Tools
 
@@ -209,20 +209,20 @@ This is appropriate for a future phase or consumer integration. For now, the con
 ## Dependency Graph
 
 ```
-DevIntelSessionTracker.Service
-  └── requires DevIntelDb.Service          (via DevIntelSessionStore)
-  └── requires DevIntelProjects.Service    (to resolve projectId from directory)
+DevBuddySessionTracker.Service
+  └── requires DevBuddyDb.Service          (via DevBuddySessionStore)
+  └── requires DevBuddyProjects.Service    (to resolve projectId from directory)
 
 sessionObserverLayer
-  └── requires DevIntelSessionTracker.Service
-  └── requires DevIntelProjects.Service
+  └── requires DevBuddySessionTracker.Service
+  └── requires DevBuddyProjects.Service
   └── requires EventV2.Service
 
-DevIntelLayer.layer
-  └── DevIntelDb.defaultLayer
-  └── DevIntelProjects.Service
-  └── DevIntelProjectMemory.Service
-  └── DevIntelSessionTracker.Service
+DevBuddyLayer.layer
+  └── DevBuddyDb.defaultLayer
+  └── DevBuddyProjects.Service
+  └── DevBuddyProjectMemory.Service
+  └── DevBuddySessionTracker.Service
   └── observerLayer     (Phase 1/2: project registration + memory init)
   └── sessionObserverLayer   (Phase 3: session tracking)
 ```

@@ -1,12 +1,12 @@
-# Dev-Intel Vision
+# Dev-Buddy Vision
 
 ## Overview
 
-Dev-Intel is a persistent developer intelligence layer built on top of OpenCode.
+Dev-Buddy is a persistent developer intelligence layer built on top of OpenCode.
 
 OpenCode remains the coding engine.
 
-Dev-Intel adds long-term memory, workspace awareness, project intelligence, developer intelligence, and context restoration.
+Dev-Buddy adds long-term memory, workspace awareness, project intelligence, developer intelligence, and context restoration.
 
 The goal is not to compete with OpenCode's coding capabilities.
 
@@ -26,7 +26,7 @@ A developer should never need to spend time remembering:
 - Which tasks are pending
 - What projects need attention
 
-Dev-Intel should restore that context automatically.
+Dev-Buddy should restore that context automatically.
 
 ---
 
@@ -54,7 +54,7 @@ Context should survive:
 
 ### Project Intelligence
 
-Dev-Intel should understand:
+Dev-Buddy should understand:
 
 - Repository structure
 - Architecture
@@ -66,7 +66,7 @@ Dev-Intel should understand:
 
 ### Session Intelligence
 
-Dev-Intel should understand:
+Dev-Buddy should understand:
 
 - Current task
 - Current branch
@@ -77,7 +77,7 @@ Dev-Intel should understand:
 
 ### Developer Intelligence
 
-Dev-Intel should understand:
+Dev-Buddy should understand:
 
 - Preferences
 - Habits
@@ -88,7 +88,7 @@ Dev-Intel should understand:
 
 ### Workspace Intelligence
 
-Dev-Intel should understand:
+Dev-Buddy should understand:
 
 - Open projects
 - Browser tabs
@@ -99,7 +99,7 @@ Dev-Intel should understand:
 
 ### Cross Project Awareness
 
-Dev-Intel should understand all repositories together.
+Dev-Buddy should understand all repositories together.
 
 Not one repository at a time.
 
@@ -107,7 +107,7 @@ Not one repository at a time.
 
 ## Non Goals
 
-Dev-Intel is NOT trying to:
+Dev-Buddy is NOT trying to:
 
 - Replace OpenCode
 - Replace LLMs
@@ -122,7 +122,7 @@ OpenCode already solves those problems.
 
 OpenCode is the execution engine.
 
-Dev-Intel is the memory and intelligence layer.
+Dev-Buddy is the memory and intelligence layer.
 
 OpenCode handles:
 
@@ -131,7 +131,7 @@ OpenCode handles:
 - MCP integration
 - Model interaction
 
-Dev-Intel handles:
+Dev-Buddy handles:
 
 - Memory
 - Context
@@ -148,7 +148,7 @@ A developer should be able to say:
 
 "Resume what I was doing yesterday."
 
-and Dev-Intel should know:
+and Dev-Buddy should know:
 
 - Project
 - Branch

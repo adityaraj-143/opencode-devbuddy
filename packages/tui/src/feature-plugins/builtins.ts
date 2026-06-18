@@ -18,10 +18,10 @@ export type BuiltinTuiPlugin = Omit<TuiPluginModule, "id"> & {
   enabled?: boolean
 }
 
-const DevIntelPlugin: BuiltinTuiPlugin = {
-  id: "internal:devintel",
+const DevBuddyPlugin: BuiltinTuiPlugin = {
+  id: "internal:devbuddy",
   tui: async (...args: Parameters<TuiPlugin>) => {
-    const { plugin } = await import("@opencode-ai/devintel/tui")
+    const { plugin } = await import("@opencode-ai/devbuddy/tui")
     return plugin.tui(...args)
   },
 }
@@ -40,6 +40,6 @@ export function createBuiltinPlugins(options: { experimentalEventSystem: boolean
     PluginManager,
     WhichKey,
     DiffViewer,
-    DevIntelPlugin,
+    DevBuddyPlugin,
   ]
 }

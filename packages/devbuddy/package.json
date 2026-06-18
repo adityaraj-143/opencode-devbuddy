@@ -1,0 +1,24 @@
+{
+  "name": "@opencode-ai/devbuddy",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": "./src/index.ts",
+    "./tui": "./src/tui/plugin.tsx"
+  },
+  "dependencies": {
+    "@opencode-ai/core": "workspace:*",
+    "@opencode-ai/effect-drizzle-sqlite": "workspace:*",
+    "@opencode-ai/plugin": "workspace:*",
+    "@effect/sql-sqlite-bun": "catalog:",
+    "effect": "catalog:",
+    "drizzle-orm": "catalog:",
+    "@opentui/core": "catalog:",
+    "@opentui/solid": "catalog:"
+  },
+  "devDependencies": {
+    "@tsconfig/bun": "catalog:",
+    "@types/bun": "catalog:",
+    "@types/node": "catalog:"
+  }
+}

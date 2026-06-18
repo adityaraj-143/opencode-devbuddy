@@ -1,4 +1,4 @@
-# Dev-Intel Integration Plan
+# Dev-Buddy Integration Plan
 
 > Architecture and implementation guide for building a persistent developer intelligence layer on top of OpenCode.
 >
@@ -28,7 +28,7 @@
 
 ### 1.1 Integration Philosophy
 
-Dev-Intel must integrate as an **extension layer**, not a fork. Every decision must preserve easy merging of upstream OpenCode updates.
+Dev-Buddy must integrate as an **extension layer**, not a fork. Every decision must preserve easy merging of upstream OpenCode updates.
 
 **The golden rule:** Add new Effect Layers, Drizzle tables, TUI plugins, and SystemContext sources. Never modify existing OpenCode internals.
 
@@ -36,11 +36,11 @@ Dev-Intel must integrate as an **extension layer**, not a fork. Every decision m
 
 | Zone | Mechanism | Files to Add/Touch |
 |------|-----------|-------------------|
-| **System Context** | `SystemContextRegistry.register()` | `packages/devintel/src/memory/*.ts` — new files only |
-| **Event Observation** | `EventV2.subscribe()` | `packages/devintel/src/observer/*.ts` — new files only |
-| **Persistence** | New Drizzle tables + migrations | `packages/devintel/src/storage/schema.sql.ts` + migration file |
+| **System Context** | `SystemContextRegistry.register()` | `packages/devbuddy/src/memory/*.ts` — new files only |
+| **Event Observation** | `EventV2.subscribe()` | `packages/devbuddy/src/observer/*.ts` — new files only |
+| **Persistence** | New Drizzle tables + migrations | `packages/devbuddy/src/storage/schema.sql.ts` + migration file |
 | **Service Layer** | `Layer.mergeAll` in AppRuntime | `packages/opencode/src/effect/app-runtime.ts` — add one line |
-| **TUI Display** | `api.slots.register()` in TUI plugin | `packages/devintel/src/tui/*.tsx` — new files only |
+| **TUI Display** | `api.slots.register()` in TUI plugin | `packages/devbuddy/src/tui/*.tsx` — new files only |
 | **Config** | Extend `Config.Info` schema | `packages/core/src/config.ts` — add optional fields |
 
 ### 1.3 Dangerous Modification Zones
@@ -56,7 +56,7 @@ Dev-Intel must integrate as an **extension layer**, not a fork. Every decision m
 
 ### 1.4 Minimizing Merge Conflicts
 
-1. **Keep Dev-Intel in its own package** (`packages/devintel/`). Upstream changes to OpenCode packages will never touch Dev-Intel files.
+1. **Keep Dev-Buddy in its own package** (`packages/devbuddy/`). Upstream changes to OpenCode packages will never touch Dev-Buddy files.
 2. **The only files that cross the boundary** are:
    - `packages/opencode/src/effect/app-runtime.ts` — one `Layer.mergeAll` addition
    - `packages/core/src/config.ts` — optional schema extension
@@ -72,12 +72,12 @@ Dev-Intel must integrate as an **extension layer**, not a fork. Every decision m
 ├──────────────────────────────────────────────────────────────┤
 │                                                              │
 │  ┌────────────────────────────────────────────────────┐      │
-│  │                  Dev-Intel TUI Plugin                │      │
+│  │                  Dev-Buddy TUI Plugin                │      │
 │  │    api.slots.register("sidebar_content", ...)       │      │
 │  └────────────────────────┬───────────────────────────┘      │
 │                           │                                   │
 │  ┌────────────────────────┴───────────────────────────┐      │
-│  │              Dev-Intel Service Layer                 │      │
+│  │              Dev-Buddy Service Layer                 │      │
 │  │  ┌──────────┐ ┌──────────┐ ┌──────────────────┐   │      │
 │  │  │ Memory   │ │ Observer │ │ SystemContext    │   │      │
 │  │  │ Store    │ │ (events) │ │ Sources          │   │      │
@@ -107,8 +107,8 @@ Dev-Intel must integrate as an **extension layer**, not a fork. Every decision m
 ### 2.1 Root Structure
 
 ```
-packages/devintel/              # New monorepo workspace
-├── package.json                # @opencode-ai/devintel
+packages/devbuddy/              # New monorepo workspace
+├── package.json                # @opencode-ai/devbuddy
 ├── tsconfig.json               # extends root tsconfig
 ├── src/
 │   ├── index.ts                # Public API: Layer, plugins, store
@@ -117,13 +117,13 @@ packages/devintel/              # New monorepo workspace
 │   │
 │   ├── core/                   # Core primitives and base types
 │   │   ├── types.ts            # Common types (MemoryID, Confidence, etc.)
-│   │   ├── id.ts               # ID generation for Dev-Intel entities
+│   │   ├── id.ts               # ID generation for Dev-Buddy entities
 │   │   └── errors.ts           # Tagged error types
 │   │
 │   ├── storage/                # Persistence layer
-│   │   ├── schema.sql.ts       # Drizzle table definitions for all Dev-Intel tables
+│   │   ├── schema.sql.ts       # Drizzle table definitions for all Dev-Buddy tables
 │   │   ├── db.ts               # Database service (wraps Database.Service)
-│   │   ├── migration.ts        # Dev-Intel-specific migration
+│   │   ├── migration.ts        # Dev-Buddy-specific migration
 │   │   ├── project-store.ts    # Project CRUD
 │   │   ├── memory-store.ts     # Memory CRUD (project/session/developer)
 │   │   ├── activity-store.ts   # Activity log CRUD
@@ -131,7 +131,7 @@ packages/devintel/              # New monorepo workspace
 │   │
 │   ├── projects/               # Project registry and discovery
 │   │   ├── registry.ts         # Project registration/discovery service
-│   │   ├── scanner.ts          # Filesystem scanner for .devintel directories
+│   │   ├── scanner.ts          # Filesystem scanner for .devbuddy directories
 │   │   └── context.ts          # Project context aggregation
 │   │
 │   ├── sessions/               # Session tracking
@@ -165,7 +165,7 @@ packages/devintel/              # New monorepo workspace
 │   │   ├── session-observer.ts # Listens to SessionEvent.*
 │   │   ├── tool-observer.ts    # Listens to Tool.* events
 │   │   ├── prompt-observer.ts  # Listens to PromptLifecycle.* events
-│   │   └── bridge.ts           # Bridges OpenCode events to Dev-Intel events
+│   │   └── bridge.ts           # Bridges OpenCode events to Dev-Buddy events
 │   │
 │   ├── resumes/                # Resume briefings
 │   │   ├── generator.ts        # Generates context summaries
@@ -179,7 +179,7 @@ packages/devintel/              # New monorepo workspace
 │       ├── status-bar.tsx      # home_footer component
 │       ├── project-list.tsx    # Project registry display
 │       └── activity-view.tsx   # Activity log viewer
-└── .devintel/                  # Dev-Intel runtime data (per-project)
+└── .devbuddy/                  # Dev-Buddy runtime data (per-project)
     ├── project.json
     └── ...
 ```
@@ -203,20 +203,20 @@ packages/devintel/              # New monorepo workspace
 ### 2.3 Dependency Direction
 
 ```
-Dev-Intel TUI
+Dev-Buddy TUI
     │
     ▼
-Dev-Intel Resumes ──► Dev-Intel Memory ──► Dev-Intel Storage
+Dev-Buddy Resumes ──► Dev-Buddy Memory ──► Dev-Buddy Storage
        │                    │
        ▼                    ▼
-Dev-Intel Activity ────► Dev-Intel Observer
+Dev-Buddy Activity ────► Dev-Buddy Observer
        │                    │
        ▼                    ▼
-Dev-Intel Sessions    Dev-Intel Projects
+Dev-Buddy Sessions    Dev-Buddy Projects
        │                    │
        └────────┬───────────┘
                 ▼
-         Dev-Intel Core
+         Dev-Buddy Core
                 │
                 ▼
          OpenCode APIs (EventV2, SystemContext, Database, TUI slots)
@@ -230,14 +230,14 @@ Dev-Intel Sessions    Dev-Intel Projects
 
 | Data | Location | Format | Why |
 |------|----------|--------|-----|
-| **Project Registry** | SQLite (`devintel.db` or `opencode.db`) | Drizzle table `dev_intel_project` | Needs querying, joins with session data |
-| **Project Memory** | `.devintel/` directory (files) | JSON files | Human-editable, version-controllable |
+| **Project Registry** | SQLite (`devbuddy.db` or `opencode.db`) | Drizzle table `dev_intel_project` | Needs querying, joins with session data |
+| **Project Memory** | `.devbuddy/` directory (files) | JSON files | Human-editable, version-controllable |
 | **Session Memory** | SQLite | Drizzle table `dev_intel_memory` | Needs querying, filtering, confidence scoring |
 | **Developer Profile** | Global SQLite / global config | Drizzle table + JSON file | Global across projects |
 | **Activity Logs** | SQLite (append-only, periodic cleanup) | Drizzle table `dev_intel_activity` | Append-heavy, needs time-range queries |
 | **Embeddings** | SQLite (store vectors as BLOB) + in-memory index | Drizzle table + HNSW in memory | Fast reads, periodic rebuild from SQLite |
-| **Workspace Snapshots** | `.devintel/workspace/` (files) | JSON files | Rarely queried, point-in-time snapshots |
-| **Task/Decision/Notes** | `.devintel/` directory (files) | JSON files | Human-editable, aligns with developer workflow |
+| **Workspace Snapshots** | `.devbuddy/workspace/` (files) | JSON files | Rarely queried, point-in-time snapshots |
+| **Task/Decision/Notes** | `.devbuddy/` directory (files) | JSON files | Human-editable, aligns with developer workflow |
 
 ### 3.2 Why SQLite vs File for Each
 
@@ -248,7 +248,7 @@ Dev-Intel Sessions    Dev-Intel Projects
 - Embeddings — needs indexed reads
 - Developer Profile — needs simple key-value lookup
 
-**`.devintel/` files (per-project, human-editable):**
+**`.devbuddy/` files (per-project, human-editable):**
 - Project Memory (structure, conventions, architecture notes) — developers should be able to edit these
 - Tasks/Decisions/Notes — human-writable, version-controllable alongside code
 - Workspace Snapshots — stored as point-in-time files
@@ -263,14 +263,14 @@ Dev-Intel Sessions    Dev-Intel Projects
 ```
 ~/.local/share/opencode/
 ├── opencode.db               # OpenCode's existing database
-├── devintel.db               # Dev-Intel's database (or same DB, separate tables)
+├── devbuddy.db               # Dev-Buddy's database (or same DB, separate tables)
 │                              # Preferred: same DB, namespaced tables
 │
 ~/.config/opencode/
-└── devintel.json             # Dev-Intel global config (developer profile, preferences)
+└── devbuddy.json             # Dev-Buddy global config (developer profile, preferences)
 
 {project}/
-├── .devintel/                 # Per-project Dev-Intel directory
+├── .devbuddy/                 # Per-project Dev-Buddy directory
 │   ├── project.json           # Project registration metadata
 │   ├── memory/                # Structured project memory
 │   │   ├── architecture.json   # Architecture overview
@@ -281,13 +281,13 @@ Dev-Intel Sessions    Dev-Intel Projects
 │   ├── notes.json              # Free-form developer notes
 │   └── workspace/              # Workspace snapshots
 │       └── 2026-06-13T...json  # Timestamped snapshots
-├── opencode.json              # May reference Dev-Intel
+├── opencode.json              # May reference Dev-Buddy
 └── ...
 ```
 
-### 3.4 Dev-Intel Database Tables
+### 3.4 Dev-Buddy Database Tables
 
-All in a single SQLite database (either the existing `opencode.db` or a separate `devintel.db`). Recommended: separate `devintel.db` to avoid migration conflicts with upstream OpenCode.
+All in a single SQLite database (either the existing `opencode.db` or a separate `devbuddy.db`). Recommended: separate `devbuddy.db` to avoid migration conflicts with upstream OpenCode.
 
 ```sql
 -- Project Registry
@@ -304,7 +304,7 @@ CREATE TABLE dev_intel_project (
   time_updated INTEGER NOT NULL
 );
 
--- Project Memory (indexed snapshot of .devintel/memory/)
+-- Project Memory (indexed snapshot of .devbuddy/memory/)
 CREATE TABLE dev_intel_project_memory (
   id TEXT PRIMARY KEY,
   project_id TEXT NOT NULL REFERENCES dev_intel_project(id),
@@ -388,14 +388,14 @@ CREATE INDEX idx_embedding_project ON dev_intel_embedding(project_id);
 
 ### 3.5 Database Connection Strategy
 
-Dev-Intel should open its own SQLite connection (or use a separate database file). This prevents schema coupling with OpenCode's migration system.
+Dev-Buddy should open its own SQLite connection (or use a separate database file). This prevents schema coupling with OpenCode's migration system.
 
 ```ts
-// Option A: Separate devintel.db (recommended)
-const db = drizzle(Bun.sqlite(path.join(Global.Path.data, "devintel.db")), { schema })
+// Option A: Separate devbuddy.db (recommended)
+const db = drizzle(Bun.sqlite(path.join(Global.Path.data, "devbuddy.db")), { schema })
 
 // Option B: Same opencode.db, namespaced tables
-// Higher risk of migration conflicts. Only if Dev-Intel tables
+// Higher risk of migration conflicts. Only if Dev-Buddy tables
 // are added as a migration in the OpenCode migration chain.
 ```
 
@@ -410,8 +410,8 @@ const db = drizzle(Bun.sqlite(path.join(Global.Path.data, "devintel.db")), { sch
 | **Why useful** | Detect when a developer starts working on a project; load project memory; register in project registry |
 | **OpenCode hook** | `InstanceState.make()` — `packages/opencode/src/effect/instance-state.ts` |
 | **Risk** | **LOW** — Observing project load doesn't affect execution |
-| **Strategy** | Register a Dev-Intel layer that runs during `InstanceState.make()`. The `InstanceState` is scoped per-directory via `ScopedCache`, so we get lifecycle events for free. |
-| **Implementation** | In Dev-Intel layer's `init()`: detect project directory change, call `DevIntelProjects.register(directory)`, load project memory from `.devintel/` |
+| **Strategy** | Register a Dev-Buddy layer that runs during `InstanceState.make()`. The `InstanceState` is scoped per-directory via `ScopedCache`, so we get lifecycle events for free. |
+| **Implementation** | In Dev-Buddy layer's `init()`: detect project directory change, call `DevBuddyProjects.register(directory)`, load project memory from `.devbuddy/` |
 | **Alternative (safer)** | Use `EventV2.subscribe(SessionEvent.Session.Created)` as proxy for first use; project is implicitly registered when first session starts |
 | **Recommendation** | Both: lazy registration on first session + explicit scan. |
 
@@ -423,7 +423,7 @@ const db = drizzle(Bun.sqlite(path.join(Global.Path.data, "devintel.db")), { sch
 | **OpenCode hook** | `SessionV2.prompt()` — `packages/core/src/session.ts` or `EventV2.subscribe(SessionEvent.PromptLifecycle.Admitted)` |
 | **Risk** | **LOW** — Event subscription is additive |
 | **Strategy** | Subscribe to `SessionEvent.PromptLifecycle.Admitted` via `EventV2.subscribe()`. On first admission for a session, create `dev_intel_session` row. |
-| **Implementation** | In `packages/devintel/src/observer/session-observer.ts`: on `Admitted` event if no session row exists → create session, start activity buffer. |
+| **Implementation** | In `packages/devbuddy/src/observer/session-observer.ts`: on `Admitted` event if no session row exists → create session, start activity buffer. |
 
 ### 4.3 Session End
 
@@ -442,10 +442,10 @@ const db = drizzle(Bun.sqlite(path.join(Global.Path.data, "devintel.db")), { sch
 | **Why useful** | Inject project/session/developer memory into the LLM context before every provider turn |
 | **OpenCode hook** | **`SystemContextRegistry.register()`** — `packages/core/src/system-context/registry.ts` |
 | **Risk** | **LOW** — This is the designed extension point for context injection |
-| **Strategy** | Create `SystemContext.Source` instances for each memory type. Register them during Dev-Intel layer initialization. The V2 runner automatically loads them via `loadSystemContext()`. |
-| **Implementation** | In `packages/devintel/src/memory/project-memory.ts`: |
+| **Strategy** | Create `SystemContext.Source` instances for each memory type. Register them during Dev-Buddy layer initialization. The V2 runner automatically loads them via `loadSystemContext()`. |
+| **Implementation** | In `packages/devbuddy/src/memory/project-memory.ts`: |
 | | 1. Define a `SystemContext.Source` with key `"dev-intel/project-memory"` |
-| | 2. `load()` reads from `.devintel/memory/*.json` or `dev_intel_memory_entry` table |
+| | 2. `load()` reads from `.devbuddy/memory/*.json` or `dev_intel_memory_entry` table |
 | | 3. `baseline()` renders markdown for the LLM |
 | | 4. `update()` computes diff for efficient context refreshes |
 | | 5. Register via `systemContextRegistry.register(source)` at layer setup |
@@ -459,7 +459,7 @@ const db = drizzle(Bun.sqlite(path.join(Global.Path.data, "devintel.db")), { sch
 | **OpenCode hook** | `EventV2.subscribe(SessionEvent.Tool.Called)` |
 | **Risk** | **LOW** — Event subscription is additive |
 | **Strategy** | Subscribe to `SessionEvent.Tool.Called`. Extract tool name, input summary, session ID. Write to `dev_intel_activity` table. |
-| **Implementation** | In `packages/devintel/src/observer/tool-observer.ts`: on `Tool.Called` → insert activity row with type `"tool_call"`, detail `{ name, inputSummary }`. |
+| **Implementation** | In `packages/devbuddy/src/observer/tool-observer.ts`: on `Tool.Called` → insert activity row with type `"tool_call"`, detail `{ name, inputSummary }`. |
 
 ### 4.6 Tool Execution End
 
@@ -469,7 +469,7 @@ const db = drizzle(Bun.sqlite(path.join(Global.Path.data, "devintel.db")), { sch
 | **OpenCode hook** | `EventV2.subscribe(SessionEvent.Tool.Success)` and `SessionEvent.Tool.Failed` |
 | **Risk** | **LOW** — Event subscription is additive |
 | **Strategy** | Subscribe to both success and failed events. Update the corresponding activity row with outcome. For file-writing tools (write, edit, apply_patch), trigger a workspace snapshot. |
-| **Implementation** | In `packages/devintel/src/observer/tool-observer.ts`: |
+| **Implementation** | In `packages/devbuddy/src/observer/tool-observer.ts`: |
 | | - On `Tool.Success` → update activity `detail.success = true`, capture output summary |
 | | - On `Tool.Failed` → update activity `detail.success = false`, capture error |
 
@@ -477,10 +477,10 @@ const db = drizzle(Bun.sqlite(path.join(Global.Path.data, "devintel.db")), { sch
 
 | Aspect | Detail |
 |--------|--------|
-| **Why useful** | Index OpenCode sessions in Dev-Intel for cross-session queries and resume briefings |
+| **Why useful** | Index OpenCode sessions in Dev-Buddy for cross-session queries and resume briefings |
 | **OpenCode hook** | `EventV2.subscribe(SessionEvent.*)` + `SessionStore` reads |
-| **Risk** | **LOW** — Read-only on OpenCode data; write-only on Dev-Intel data |
-| **Strategy** | Subscribe to all session events. Maintain a `dev_intel_session` table mirror with Dev-Intel-specific fields (branch, task, resolved). |
+| **Risk** | **LOW** — Read-only on OpenCode data; write-only on Dev-Buddy data |
+| **Strategy** | Subscribe to all session events. Maintain a `dev_intel_session` table mirror with Dev-Buddy-specific fields (branch, task, resolved). |
 | **Implementation** | In session observer: on each session event, upsert `dev_intel_session` metadata. On new messages, increment `message_count`. |
 
 ### 4.8 UI Rendering
@@ -491,10 +491,10 @@ const db = drizzle(Bun.sqlite(path.join(Global.Path.data, "devintel.db")), { sch
 | **OpenCode hook** | TUI plugin slots: `sidebar_content`, `home_bottom`, `home_footer` |
 | **Risk** | **LOW** — Plugin slot system is designed for this |
 | **Strategy** | Create a `BuiltinTuiPlugin` that registers slot handlers. Follow the pattern in `packages/tui/src/feature-plugins/sidebar/context.tsx`. |
-| **Implementation** | In `packages/devintel/src/tui/plugin.ts`: |
-| | - `api.slots.register("sidebar_content")` → `DevIntelMemoryPanel` showing active memory entries |
-| | - `api.slots.register("home_bottom")` → `DevIntelResumeCard` showing session resume briefing |
-| | - `api.slots.register("home_footer")` → `DevIntelStatusBar` showing memory count, freshness |
+| **Implementation** | In `packages/devbuddy/src/tui/plugin.ts`: |
+| | - `api.slots.register("sidebar_content")` → `DevBuddyMemoryPanel` showing active memory entries |
+| | - `api.slots.register("home_bottom")` → `DevBuddyResumeCard` showing session resume briefing |
+| | - `api.slots.register("home_footer")` → `DevBuddyStatusBar` showing memory count, freshness |
 | | Register in `packages/tui/src/feature-plugins/builtins.ts` |
 
 ### 4.9 Integration Point Summary
@@ -520,20 +520,20 @@ const db = drizzle(Bun.sqlite(path.join(Global.Path.data, "devintel.db")), { sch
 **Dependencies:** None (standalone)
 
 **Expected Deliverables:**
-- `packages/devintel/src/storage/schema.sql.ts` — `dev_intel_project` table
-- `packages/devintel/src/storage/db.ts` — Database connection
-- `packages/devintel/src/storage/project-store.ts` — Project CRUD
-- `packages/devintel/src/projects/registry.ts` — Registration service
-- `packages/devintel/src/projects/scanner.ts` — Scan for `.devintel/` dirs
-- `packages/devintel/src/tui/plugin.ts` — TUI plugin bootstrap
-- `packages/devintel/src/tui/project-list.tsx` — Project list in sidebar
-- `packages/devintel/src/layer.ts` — Effect Layer
+- `packages/devbuddy/src/storage/schema.sql.ts` — `dev_intel_project` table
+- `packages/devbuddy/src/storage/db.ts` — Database connection
+- `packages/devbuddy/src/storage/project-store.ts` — Project CRUD
+- `packages/devbuddy/src/projects/registry.ts` — Registration service
+- `packages/devbuddy/src/projects/scanner.ts` — Scan for `.devbuddy/` dirs
+- `packages/devbuddy/src/tui/plugin.ts` — TUI plugin bootstrap
+- `packages/devbuddy/src/tui/project-list.tsx` — Project list in sidebar
+- `packages/devbuddy/src/layer.ts` — Effect Layer
 - Migration: `20260614_dev_intel_project.sql.ts`
 
 **Likely Files Affected:**
-- `packages/opencode/src/effect/app-runtime.ts` — Add `DevIntel.layer`
-- `packages/tui/src/feature-plugins/builtins.ts` — Register Dev-Intel TUI plugin
-- All other files are new in `packages/devintel/`
+- `packages/opencode/src/effect/app-runtime.ts` — Add `DevBuddy.layer`
+- `packages/tui/src/feature-plugins/builtins.ts` — Register Dev-Buddy TUI plugin
+- All other files are new in `packages/devbuddy/`
 
 **Required Extension Points:**
 - `EventV2.subscribe(SessionEvent.Session.Created)` — Detect first session → implicitly register project
@@ -544,7 +544,7 @@ const db = drizzle(Bun.sqlite(path.join(Global.Path.data, "devintel.db")), { sch
 - New database file requires directory existence check
 
 **Success Criteria:**
-- Dev-Intel automatically discovers projects when sessions start in them
+- Dev-Buddy automatically discovers projects when sessions start in them
 - Project list appears in TUI sidebar
 - Project registry persists across restarts
 
@@ -557,32 +557,32 @@ const db = drizzle(Bun.sqlite(path.join(Global.Path.data, "devintel.db")), { sch
 **Dependencies:** Phase 1 (Project Registry)
 
 **Expected Deliverables:**
-- `.devintel/` directory creation on project registration
-- `.devintel/project.json` — Project metadata
-- `.devintel/memory/architecture.json` — Architecture overview
-- `.devintel/memory/conventions.json` — Coding conventions
-- `.devintel/memory/decisions.json` — ADRs
-- `.devintel/memory/glossary.json` — Project terminology
-- `.devintel/tasks.json` — Task tracking
-- `.devintel/notes.json` — Free-form notes
-- `packages/devintel/src/projects/context.ts` — Context aggregation from .devintel files
-- `packages/devintel/src/storage/memory-store.ts` — SQLite memory index
+- `.devbuddy/` directory creation on project registration
+- `.devbuddy/project.json` — Project metadata
+- `.devbuddy/memory/architecture.json` — Architecture overview
+- `.devbuddy/memory/conventions.json` — Coding conventions
+- `.devbuddy/memory/decisions.json` — ADRs
+- `.devbuddy/memory/glossary.json` — Project terminology
+- `.devbuddy/tasks.json` — Task tracking
+- `.devbuddy/notes.json` — Free-form notes
+- `packages/devbuddy/src/projects/context.ts` — Context aggregation from .devbuddy files
+- `packages/devbuddy/src/storage/memory-store.ts` — SQLite memory index
 
 **Likely Files Affected:**
-- `packages/devintel/src/storage/schema.sql.ts` — Add `dev_intel_memory_entry` table
-- `packages/devintel/src/memory/loader.ts` — Load memory from .devintel
+- `packages/devbuddy/src/storage/schema.sql.ts` — Add `dev_intel_memory_entry` table
+- `packages/devbuddy/src/memory/loader.ts` — Load memory from .devbuddy
 
 **Required Extension Points:**
 - None yet — this phase is purely about filesystem persistence
 
 **Risks:**
 - **Low** — No integration with OpenCode execution
-- Need to handle concurrent writes to .devintel files (use Effect locks)
+- Need to handle concurrent writes to .devbuddy files (use Effect locks)
 
 **Success Criteria:**
-- Creating `conventions.json` in `.devintel/memory/` persists across restarts
-- Content is readable by both humans and Dev-Intel
-- Multiple projects have independent `.devintel/` directories
+- Creating `conventions.json` in `.devbuddy/memory/` persists across restarts
+- Content is readable by both humans and Dev-Buddy
+- Multiple projects have independent `.devbuddy/` directories
 
 ---
 
@@ -593,15 +593,15 @@ const db = drizzle(Bun.sqlite(path.join(Global.Path.data, "devintel.db")), { sch
 **Dependencies:** Phase 1 (Project Registry)
 
 **Expected Deliverables:**
-- `packages/devintel/src/observer/session-observer.ts` — Event subscriptions
-- `packages/devintel/src/sessions/tracker.ts` — Active session tracking
-- `packages/devintel/src/sessions/store.ts` — Session persistence
-- `packages/devintel/src/storage/schema.sql.ts` — `dev_intel_session` table
-- `packages/devintel/src/tui/resume-card.tsx` — Show active session info
+- `packages/devbuddy/src/observer/session-observer.ts` — Event subscriptions
+- `packages/devbuddy/src/sessions/tracker.ts` — Active session tracking
+- `packages/devbuddy/src/sessions/store.ts` — Session persistence
+- `packages/devbuddy/src/storage/schema.sql.ts` — `dev_intel_session` table
+- `packages/devbuddy/src/tui/resume-card.tsx` — Show active session info
 
 **Likely Files Affected:**
-- `packages/devintel/src/layer.ts` — Wire observer
-- `packages/devintel/src/tui/plugin.ts` — Wire resume card component
+- `packages/devbuddy/src/layer.ts` — Wire observer
+- `packages/devbuddy/src/tui/plugin.ts` — Wire resume card component
 
 **Required Extension Points:**
 - `EventV2.subscribe(SessionEvent.PromptLifecycle.Admitted)` — Session start
@@ -625,16 +625,16 @@ const db = drizzle(Bun.sqlite(path.join(Global.Path.data, "devintel.db")), { sch
 **Dependencies:** Phase 2 + Phase 3
 
 **Expected Deliverables:**
-- `packages/devintel/src/resumes/generator.ts` — Context summary generation
-- `packages/devintel/src/resumes/template.md` — Markdown template
-- `packages/devintel/src/resumes/precedence.ts` — Priority logic
-- `packages/devintel/src/sessions/summary.ts` — Session summarization
-- `packages/devintel/src/memory/loader.ts` — Relevance-based memory loading
-- Updated `packages/devintel/src/tui/resume-card.tsx` — Full resume UI
+- `packages/devbuddy/src/resumes/generator.ts` — Context summary generation
+- `packages/devbuddy/src/resumes/template.md` — Markdown template
+- `packages/devbuddy/src/resumes/precedence.ts` — Priority logic
+- `packages/devbuddy/src/sessions/summary.ts` — Session summarization
+- `packages/devbuddy/src/memory/loader.ts` — Relevance-based memory loading
+- Updated `packages/devbuddy/src/tui/resume-card.tsx` — Full resume UI
 
 **Likely Files Affected:**
-- `packages/devintel/src/memory/project-memory.ts` — Load for resume context
-- `packages/devintel/src/memory/session-memory.ts` — Load last session context
+- `packages/devbuddy/src/memory/project-memory.ts` — Load for resume context
+- `packages/devbuddy/src/memory/session-memory.ts` — Load last session context
 
 **Required Extension Points:**
 - `SystemContextRegistry.register()` — Inject resume context as a SystemContext source
@@ -657,17 +657,17 @@ const db = drizzle(Bun.sqlite(path.join(Global.Path.data, "devintel.db")), { sch
 **Dependencies:** Phase 3 (Session Tracking)
 
 **Expected Deliverables:**
-- `packages/devintel/src/observer/tool-observer.ts` — Tool event subscriptions
-- `packages/devintel/src/observer/prompt-observer.ts` — Prompt event subscriptions
-- `packages/devintel/src/activity/recorder.ts` — Activity event consumer
-- `packages/devintel/src/activity/timeline.ts` — Timeline builder
-- `packages/devintel/src/activity/aggregator.ts` — Weekly/monthly summaries
-- `packages/devintel/src/storage/schema.sql.ts` — `dev_intel_activity` table
-- `packages/devintel/src/tui/activity-view.tsx` — Activity log UI
+- `packages/devbuddy/src/observer/tool-observer.ts` — Tool event subscriptions
+- `packages/devbuddy/src/observer/prompt-observer.ts` — Prompt event subscriptions
+- `packages/devbuddy/src/activity/recorder.ts` — Activity event consumer
+- `packages/devbuddy/src/activity/timeline.ts` — Timeline builder
+- `packages/devbuddy/src/activity/aggregator.ts` — Weekly/monthly summaries
+- `packages/devbuddy/src/storage/schema.sql.ts` — `dev_intel_activity` table
+- `packages/devbuddy/src/tui/activity-view.tsx` — Activity log UI
 
 **Likely Files Affected:**
-- `packages/devintel/src/layer.ts` — Wire tool/prompt observers
-- `packages/devintel/src/tui/plugin.ts` — Wire activity view
+- `packages/devbuddy/src/layer.ts` — Wire tool/prompt observers
+- `packages/devbuddy/src/tui/plugin.ts` — Wire activity view
 
 **Required Extension Points:**
 - `EventV2.subscribe(SessionEvent.Tool.Called/Success/Failed)` — Tool activity
@@ -692,21 +692,21 @@ const db = drizzle(Bun.sqlite(path.join(Global.Path.data, "devintel.db")), { sch
 **Dependencies:** Phase 5 (Activity Logging), Phase 2 (Project Memory)
 
 **Expected Deliverables:**
-- `packages/devintel/src/embeddings/provider.ts` — Embedding abstraction
-- `packages/devintel/src/embeddings/local.ts` — Local model integration
-- `packages/devintel/src/embeddings/index.ts` — In-memory vector index
-- `packages/devintel/src/embeddings/search.ts` — Search interface
-- `packages/devintel/src/storage/schema.sql.ts` — `dev_intel_embedding` table
+- `packages/devbuddy/src/embeddings/provider.ts` — Embedding abstraction
+- `packages/devbuddy/src/embeddings/local.ts` — Local model integration
+- `packages/devbuddy/src/embeddings/index.ts` — In-memory vector index
+- `packages/devbuddy/src/embeddings/search.ts` — Search interface
+- `packages/devbuddy/src/storage/schema.sql.ts` — `dev_intel_embedding` table
 - Chunking and indexing of project files
 - Chunking and indexing of project memory
 - Chunking and indexing of activity logs
 
 **Likely Files Affected:**
-- `packages/devintel/src/memory/loader.ts` — Use semantic search for memory retrieval
-- `packages/devintel/src/projects/context.ts` — Index project codebase
+- `packages/devbuddy/src/memory/loader.ts` — Use semantic search for memory retrieval
+- `packages/devbuddy/src/projects/context.ts` — Index project codebase
 
 **Required Extension Points:**
-- None directly (embeddings are internal to Dev-Intel)
+- None directly (embeddings are internal to Dev-Buddy)
 - May later connect to `SystemContext.Source` load function for semantic retrieval
 
 **Risks:**
@@ -724,30 +724,30 @@ const db = drizzle(Bun.sqlite(path.join(Global.Path.data, "devintel.db")), { sch
 
 ### Phase 7: OpenCode Memory Integration
 
-**Purpose:** Inject Dev-Intel memory directly into OpenCode's LLM context.
+**Purpose:** Inject Dev-Buddy memory directly into OpenCode's LLM context.
 
 **Dependencies:** Phase 6 (Semantic Search), Phase 2 (Project Memory), Phase 3 (Session Tracking)
 
 **Expected Deliverables:**
-- `packages/devintel/src/memory/project-memory.ts` — `SystemContext.Source` for project memory
-- `packages/devintel/src/memory/session-memory.ts` — `SystemContext.Source` for session context
-- `packages/devintel/src/memory/developer-profile.ts` — `SystemContext.Source` for developer preferences
-- `packages/devintel/src/memory/inference.ts` — Learn patterns from observed activity
+- `packages/devbuddy/src/memory/project-memory.ts` — `SystemContext.Source` for project memory
+- `packages/devbuddy/src/memory/session-memory.ts` — `SystemContext.Source` for session context
+- `packages/devbuddy/src/memory/developer-profile.ts` — `SystemContext.Source` for developer preferences
+- `packages/devbuddy/src/memory/inference.ts` — Learn patterns from observed activity
 - Integration test verifying context appears in LLM request
 
 **Likely Files Affected:**
-- `packages/devintel/src/layer.ts` — Register SystemContext sources
-- `packages/devintel/src/memory/loader.ts` — Use semantic search to select relevant memories
+- `packages/devbuddy/src/layer.ts` — Register SystemContext sources
+- `packages/devbuddy/src/memory/loader.ts` — Use semantic search to select relevant memories
 
 **Required Extension Points:**
 - **`SystemContextRegistry.register()`** — The primary hook. Register sources that are automatically loaded by `SessionRunner` before each LLM turn.
 
 **Risks:**
 - **HIGH** — Context is the most sensitive part of the LLM request. Too much context degrades quality. Wrong context confuses the model. Need careful:
-  - **Token budgeting**: Each source < 500 tokens, total < 2000 tokens for Dev-Intel
+  - **Token budgeting**: Each source < 500 tokens, total < 2000 tokens for Dev-Buddy
   - **Relevance filtering**: Only inject memory if relevance exceeds threshold
-  - **A/B testing**: Compare session quality with and without Dev-Intel context
-- **Upstream compatibility**: If upstream changes SystemContext API, Dev-Intel sources must be updated
+  - **A/B testing**: Compare session quality with and without Dev-Buddy context
+- **Upstream compatibility**: If upstream changes SystemContext API, Dev-Buddy sources must be updated
 
 **Success Criteria:**
 - Project memory appears in `LLM.request()` system context
@@ -762,13 +762,13 @@ const db = drizzle(Bun.sqlite(path.join(Global.Path.data, "devintel.db")), { sch
 
 ### 6.1 Event Definitions
 
-Dev-Intel defines its own event types (separate from OpenCode's `SessionEvent`). These are internal to Dev-Intel but inspired by OpenCode's event-sourcing pattern.
+Dev-Buddy defines its own event types (separate from OpenCode's `SessionEvent`). These are internal to Dev-Buddy but inspired by OpenCode's event-sourcing pattern.
 
 ```typescript
-// Dev-Intel Internal Events (not OpenCode EventV2)
-// These are emitted and consumed within the Dev-Intel service layer.
+// Dev-Buddy Internal Events (not OpenCode EventV2)
+// These are emitted and consumed within the Dev-Buddy service layer.
 
-type DevIntelEvent =
+type DevBuddyEvent =
   // Project lifecycle
   | { type: "project_registered"; projectID: string; worktree: string }
   | { type: "project_opened"; projectID: string }
@@ -803,7 +803,7 @@ type DevIntelEvent =
 │                       EVENT FLOW MAP                             │
 └──────────────────────────────────────────────────────────────────┘
 
-OpenCode EventV2                 Dev-Intel Observer           Dev-Intel Consumers
+OpenCode EventV2                 Dev-Buddy Observer           Dev-Buddy Consumers
 ─────────────────                ─────────────────────       ─────────────────────
 
 SessionEvent.PromptLifecycle     session-observer.ts
@@ -905,13 +905,13 @@ interface Project {
   id: string                    // dev_intel_ prefix, ULID-based
   opencodeProjectID?: string    // FK to OpenCode's project.id
   worktreePath: string          // Absolute path to project root
-  name: string                  // Derived from directory name or .devintel/project.json
+  name: string                  // Derived from directory name or .devbuddy/project.json
   vcsType: "git" | "hg" | "svn" | "none"
   vcsRemote?: string            // e.g., "github.com/user/repo"
   lastOpenedAt: number          // Unix ms timestamp
   timesOpened: number
-  memoryDomains: string[]       // From .devintel/memory/ directory listing
-  hasDevIntel: boolean          // Has .devintel directory?
+  memoryDomains: string[]       // From .devbuddy/memory/ directory listing
+  hasDevBuddy: boolean          // Has .devbuddy directory?
   createdAt: number
   updatedAt: number
 }
@@ -1129,8 +1129,8 @@ interface ProjectContextForLLM {
 
 | Risk | Likelihood | Impact | Mitigation |
 |------|-----------|--------|------------|
-| **OpenCode V1/V2 migration completes, changing session architecture** | HIGH | Dev-Intel hooks into V2 patterns may need updates | Target V2 from day one; avoid V1 hooks entirely |
-| **SystemContext algebra changes upstream** | MEDIUM | Dev-Intel memory sources need rework | Isolate SystemContext source registration behind Dev-Intel's own abstraction layer |
+| **OpenCode V1/V2 migration completes, changing session architecture** | HIGH | Dev-Buddy hooks into V2 patterns may need updates | Target V2 from day one; avoid V1 hooks entirely |
+| **SystemContext algebra changes upstream** | MEDIUM | Dev-Buddy memory sources need rework | Isolate SystemContext source registration behind Dev-Buddy's own abstraction layer |
 | **EventV2 API changes** | LOW | Observer subscriptions break | Use `EventV2.subscribe()` — the stable public API |
 | **TUI plugin slot system changes** | MEDIUM | Sidebar/resume UI breaks | Keep UI components thin; TUI slot registration is simple |
 
@@ -1141,7 +1141,7 @@ interface ProjectContextForLLM {
 | **Memory injection adds latency to session startup** | MEDIUM | Worse developer experience | Load memory asynchronously; inject in a background fiber before the first prompt response |
 | **Embedding generation blocks the main thread** | HIGH | UI freezes during indexing | Use background jobs (OpenCode's `BackgroundJob` service); chunk large codebases; incremental indexing |
 | **Activity logging writes contend with SQLite** | LOW | Minor write latency | Batch activity writes (buffer in memory, flush every 5 seconds) |
-| **Large .devintel directories slow down project open** | LOW | Startup delay | Async loading; show loading state in TUI |
+| **Large .devbuddy directories slow down project open** | LOW | Startup delay | Async loading; show loading state in TUI |
 
 ### 8.3 Storage Risks
 
@@ -1149,7 +1149,7 @@ interface ProjectContextForLLM {
 |------|-----------|--------|------------|
 | **Activity table grows unbounded** | HIGH | Disk usage, slow queries | Default 90-day retention; configurable; automatic pruning job |
 | **Embedding vectors consume significant storage** | MEDIUM | Disk usage | Compress vectors (scalar quantization); offer configurable model size |
-| **.devintel files conflict with developer workflows** | LOW | Developer annoyance | Make files human-readable and optional; never required for OpenCode functionality |
+| **.devbuddy files conflict with developer workflows** | LOW | Developer annoyance | Make files human-readable and optional; never required for OpenCode functionality |
 | **SQLite WAL file grows with frequent writes** | LOW | Disk usage | Periodic checkpointing (already handled by OpenCode's SQLite pragmas) |
 
 ### 8.4 Prompt Context Risks
@@ -1165,8 +1165,8 @@ interface ProjectContextForLLM {
 
 | Risk | Likelihood | Impact | Mitigation |
 |------|-----------|--------|------------|
-| **OpenCode merges from upstream conflict with Dev-Intel changes** | MEDIUM | Painful merge resolution | **Keep Dev-Intel changes minimal:** only `app-runtime.ts` (+1 line), new database migration, new TUI plugin registration. All other code is in `packages/devintel/` which upstream doesn't touch. |
-| **OpenCode changes SystemContext registration API** | MEDIUM | Dev-Intel sources need rewrite | Monitor upstream changes; SystemContext is part of `@opencode-ai/core` which has semver |
+| **OpenCode merges from upstream conflict with Dev-Buddy changes** | MEDIUM | Painful merge resolution | **Keep Dev-Buddy changes minimal:** only `app-runtime.ts` (+1 line), new database migration, new TUI plugin registration. All other code is in `packages/devbuddy/` which upstream doesn't touch. |
+| **OpenCode changes SystemContext registration API** | MEDIUM | Dev-Buddy sources need rewrite | Monitor upstream changes; SystemContext is part of `@opencode-ai/core` which has semver |
 | **OpenCode changes TUI plugin API** | LOW | TUI plugin needs update | Keep plugin simple; TUI plugin API is stable |
 
 ### 8.6 Maintenance Risks
@@ -1174,7 +1174,7 @@ interface ProjectContextForLLM {
 | Risk | Likelihood | Impact | Mitigation |
 |------|-----------|--------|------------|
 | **Embedding model becomes unavailable** | LOW | Semantic search broken | Support multiple providers; local-first with ONNX; graceful degradation to keyword search |
-| **.devintel format drifts from codebase** | MEDIUM | Stale project context | Regular refresh prompts; integrate with git hooks to update on push |
+| **.devbuddy format drifts from codebase** | MEDIUM | Stale project context | Regular refresh prompts; integrate with git hooks to update on push |
 | **Developer profile becomes outdated** | MEDIUM | Irrelevant preferences | Continuous learning from tool usage; prompt user periodically to review |
 
 ---
@@ -1211,8 +1211,8 @@ Based on the repository architecture, the smallest valuable MVP is:
 Phase 1 + Phase 2 + Phase 3 = MVP
 
 What you get:
-- Dev-Intel knows all projects (auto-discovered)
-- Each project has .devintel/ with editable memory files
+- Dev-Buddy knows all projects (auto-discovered)
+- Each project has .devbuddy/ with editable memory files
 - Each session is tracked with branch, files, duration
 - TUI sidebar shows project list and memory status
 - All data survives restarts (SQLite + files)
@@ -1220,18 +1220,18 @@ What you get:
 
 ### 9.4 MVP Implementation Order
 
-1. **Package skeleton** — `packages/devintel/` with `package.json`, `tsconfig.json`, empty `src/`
+1. **Package skeleton** — `packages/devbuddy/` with `package.json`, `tsconfig.json`, empty `src/`
 2. **Storage foundation** — Database connection, `dev_intel_project` table, migration
 3. **Project registry** — Auto-discover from session events, show in TUI
-4. **.devintel directory** — Create on project registration, seed with templates
-5. **Project memory** — Read `.devintel/memory/*.json`, display in TUI
+4. **.devbuddy directory** — Create on project registration, seed with templates
+5. **Project memory** — Read `.devbuddy/memory/*.json`, display in TUI
 6. **Session tracking** — Subscribe to session events, persist `dev_intel_session`
 7. **Wire into OpenCode** — Add layer to `app-runtime.ts`, register TUI plugin
 8. **Integration tests** — Verify all data survives restart, TUI shows correctly
 
 ### 9.5 What to Avoid Entirely in MVP
 
-- DO NOT inject any Dev-Intel data into LLM prompts (no SystemContext sources)
+- DO NOT inject any Dev-Buddy data into LLM prompts (no SystemContext sources)
 - DO NOT attempt session summarization (requires LLM calls)
 - DO NOT build embeddings or semantic search
 - DO NOT modify OpenCode's session/message storage
@@ -1248,7 +1248,7 @@ Once baseline memory is proven:
 - **Resume Briefings** — "Welcome back. Yesterday you were working on X. Key decisions: Y, Z."
 - **Activity Logging** — Full timeline of development activity, searchable, filterable
 - **Semantic Search** — "Find the PR discussion about the caching layer"
-- **Memory Injection** — Dev-Intel context automatically appears in every LLM request
+- **Memory Injection** — Dev-Buddy context automatically appears in every LLM request
 
 ### 10.2 Workspace Snapshots (Phase 8)
 
@@ -1286,7 +1286,7 @@ Automatic daily/weekly summaries of:
 
 ### 10.6 Proactive Intelligence (Phase 12)
 
-Dev-Intel suggests actions before being asked:
+Dev-Buddy suggests actions before being asked:
 - "Your tests haven't been run since you changed the API"
 - "You left a TODO on line 42 — would you like to address it?"
 - "The convention you're using was deprecated in favor of X"
@@ -1311,7 +1311,7 @@ The ultimate vision from `DEVINTEL_VISION.md`:
 
 ## Appendix A: Files to Create/Modify Summary
 
-### New Files (all in `packages/devintel/`)
+### New Files (all in `packages/devbuddy/`)
 
 Approximately 35-40 new files covering the full architecture.
 
@@ -1319,12 +1319,12 @@ Approximately 35-40 new files covering the full architecture.
 
 | File | Change | Risk |
 |------|--------|------|
-| `packages/opencode/src/effect/app-runtime.ts` | Add `DevIntel.layer` to `Layer.mergeAll` (1 line) | **LOW** |
-| `packages/opencode/package.json` | Add `@opencode-ai/devintel` to workspace catalog (1 line) | **LOW** |
-| `packages/tui/src/feature-plugins/builtins.ts` | Register Dev-Intel TUI plugin (1 line) | **LOW** |
+| `packages/opencode/src/effect/app-runtime.ts` | Add `DevBuddy.layer` to `Layer.mergeAll` (1 line) | **LOW** |
+| `packages/opencode/package.json` | Add `@opencode-ai/devbuddy` to workspace catalog (1 line) | **LOW** |
+| `packages/tui/src/feature-plugins/builtins.ts` | Register Dev-Buddy TUI plugin (1 line) | **LOW** |
 | `packages/core/src/database/migration.gen.ts` | Auto-regenerated after adding migration (auto) | **LOW** |
 
-3 lines of code changed in the entire OpenCode codebase. Everything else is in `packages/devintel/`.
+3 lines of code changed in the entire OpenCode codebase. Everything else is in `packages/devbuddy/`.
 
 ### Files NEVER to Touch
 
@@ -1360,7 +1360,7 @@ Approximately 35-40 new files covering the full architecture.
 │  └────────────┼───────────────────────┼─────────────────────┼──────────┘  │
 │               │                       │                     │            │
 │  ┌────────────┼───────────────────────┼─────────────────────┼──────────┐  │
-│  │            │       Dev-Intel Service Layer               │          │  │
+│  │            │       Dev-Buddy Service Layer               │          │  │
 │  │            │                       │                     │          │  │
 │  │  ┌─────────┴──────────┐  ┌────────┴──────────┐  ┌───────┴───────┐  │  │
 │  │  │   Memory Service   │  │  Resume Service   │  │  Activity     │  │  │
@@ -1369,7 +1369,7 @@ Approximately 35-40 new files covering the full architecture.
 │  │            │                                              │         │  │
 │  │  ┌─────────┴──────────────────────────────────────────────┴───────┐ │  │
 │  │  │                Observer Layer                                  │ │  │
-│  │  │  subscribes to EventV2, bridges to Dev-Intel events           │ │  │
+│  │  │  subscribes to EventV2, bridges to Dev-Buddy events           │ │  │
 │  │  └──────────────────────────────┬─────────────────────────────────┘ │  │
 │  └─────────────────────────────────┼───────────────────────────────────┘  │
 │                                    │                                      │

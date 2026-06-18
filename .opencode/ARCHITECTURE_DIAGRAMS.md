@@ -304,7 +304,7 @@ File System                              SQLite Database
 └─────────────────────┘    └───────────────────────────────────────────┘
 ```
 
-## 5. Proposed Dev-Intel Integration Architecture
+## 5. Proposed Dev-Buddy Integration Architecture
 
 ```
 ┌──────────────────────────────────────────────────────────────────────┐
@@ -325,7 +325,7 @@ System Context Sources (injected before each LLM turn)
                               │
                               ▼
 ┌───────────────────────────────────────────────────────────────────┐
-│                    Dev-Intel Storage Schema                        │
+│                    Dev-Buddy Storage Schema                        │
 │  (new Drizzle tables in packages/core/src/**/*.sql.ts)            │
 ├───────────────────────────────────────────────────────────────────┤
 │  dev_intel_memory                                                 │
@@ -355,11 +355,11 @@ System Context Sources (injected before each LLM turn)
 │                    TUI Plugin (UI display)                         │
 ├───────────────────────────────────────────────────────────────────┤
 │  slot: "sidebar_content"                                          │
-│    → Dev-Intel Memory Panel (shows active project memory)         │
+│    → Dev-Buddy Memory Panel (shows active project memory)         │
 │  slot: "home_bottom"                                              │
 │    → Session Resume Briefing (shows context on return)            │
 │  slot: "home_footer"                                              │
-│    → Dev-Intel Status (memory count, freshness)                   │
+│    → Dev-Buddy Status (memory count, freshness)                   │
 └───────────────────────────────────────────────────────────────────┘
 
 Integration Points (safe):

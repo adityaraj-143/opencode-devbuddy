@@ -86,9 +86,9 @@ Managed via `LocationServiceMap` and `InstanceState`.
 
 7. **"Event bus over callbacks"** — Cross-module communication goes through EventV2, not direct function calls.
 
-## Potential Alignment with Dev-Intel
+## Potential Alignment with Dev-Buddy
 
-Dev-Intel needs to:
+Dev-Buddy needs to:
 1. **Load project memory** — Read project context, codebase analysis, and developer conventions
 2. **Inject memory into prompts** — Before LLM calls, add relevant context
 3. **Observe tool execution** — Track what the AI is doing for learning
@@ -97,7 +97,7 @@ Dev-Intel needs to:
 
 OpenCode provides natural hooks for all of these:
 
-| Dev-Intel Need | OpenCode Hook |
+| Dev-Buddy Need | OpenCode Hook |
 |---------------|---------------|
 | Load project memory | `SystemContextRegistry.register()` source |
 | Inject into prompts | `SystemContext.Source` → automatically loaded before each turn |
@@ -105,7 +105,7 @@ OpenCode provides natural hooks for all of these:
 | Persist memory | New Drizzle table + EventV2 for durability |
 | Show in UI | TUI plugin slot `sidebar_content` |
 
-The V2 System Context algebra is the **ideal integration point**. By registering a `SystemContext.Source("dev-intel/project-memory")`, Dev-Intel data is automatically:
+The V2 System Context algebra is the **ideal integration point**. By registering a `SystemContext.Source("dev-intel/project-memory")`, Dev-Buddy data is automatically:
 - Loaded before each LLM turn
 - Combined with other context sources
 - Versioned and diffed (baseline + updates pattern)

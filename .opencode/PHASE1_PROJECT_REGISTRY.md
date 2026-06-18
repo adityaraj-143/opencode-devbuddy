@@ -2,7 +2,7 @@
 
 **Purpose:** Track which repositories the developer works on. Establish the foundation for all per-project intelligence.
 
-**Dependencies:** None (standalone — no other Dev-Intel phases required)
+**Dependencies:** None (standalone — no other Dev-Buddy phases required)
 
 **Success Criteria:**
 - Projects are automatically discovered when sessions start in their worktree
@@ -16,11 +16,11 @@
 
 ### Step 0: Workspace Registration
 
-Add `packages/devintel` to the root workspace catalog if not already present.
+Add `packages/devbuddy` to the root workspace catalog if not already present.
 
 | Action | File | Detail |
 |--------|------|--------|
-| Verify | `package.json` (root) | Confirm `packages/devintel` is listed under `workspaces.packages` |
+| Verify | `package.json` (root) | Confirm `packages/devbuddy` is listed under `workspaces.packages` |
 
 **Dependencies:** None
 
@@ -32,11 +32,11 @@ Add `packages/devintel` to the root workspace catalog if not already present.
 
 Create the minimal npm package shell.
 
-#### 1a. `packages/devintel/package.json`
+#### 1a. `packages/devbuddy/package.json`
 
 ```json
 {
-  "name": "@opencode-ai/devintel",
+  "name": "@opencode-ai/devbuddy",
   "type": "module",
   "private": true,
   "exports": {
@@ -60,7 +60,7 @@ Create the minimal npm package shell.
 }
 ```
 
-#### 1b. `packages/devintel/tsconfig.json`
+#### 1b. `packages/devbuddy/tsconfig.json`
 
 ```json
 {
@@ -74,7 +74,7 @@ Create the minimal npm package shell.
 }
 ```
 
-#### 1c. `packages/devintel/src/core/types.ts`
+#### 1c. `packages/devbuddy/src/core/types.ts`
 
 Phase-1-relevant types only:
 
@@ -83,13 +83,13 @@ export type VcsType = "git" | "hg" | "svn" | "none"
 
 export interface ProjectMeta {
   name: string
-  hasDevIntelDir: boolean
+  hasDevBuddyDir: boolean
   vcsType: VcsType
   vcsRemote?: string
 }
 ```
 
-#### 1d. `packages/devintel/src/core/id.ts`
+#### 1d. `packages/devbuddy/src/core/id.ts`
 
 Timestamped-prefix ID generator producing values like `dip_1a2b3c4d5e6f`.
 
@@ -122,7 +122,7 @@ export function projectID(): string {
 }
 ```
 
-#### 1e. `packages/devintel/src/core/errors.ts`
+#### 1e. `packages/devbuddy/src/core/errors.ts`
 
 Phase-1-relevant errors only:
 
@@ -130,30 +130,30 @@ Phase-1-relevant errors only:
 import { Schema } from "effect"
 
 export class ProjectNotFound extends Schema.TaggedErrorClass<ProjectNotFound>()(
-  "DevIntel.ProjectNotFound",
+  "DevBuddy.ProjectNotFound",
   { projectID: Schema.String },
 ) {}
 
 export class DirectoryNotFound extends Schema.TaggedErrorClass<DirectoryNotFound>()(
-  "DevIntel.DirectoryNotFound",
+  "DevBuddy.DirectoryNotFound",
   { path: Schema.String },
 ) {}
 ```
 
-#### 1f. `packages/devintel/src/index.ts`
+#### 1f. `packages/devbuddy/src/index.ts`
 
 Public API barrel — only Phase 1 exports:
 
 ```ts
-export { DevIntelLayer } from "./layer"
-export { DevIntelProjectStore } from "./storage/project-store"
-export { DevIntelProjects } from "./projects/registry"
-export { DevIntelScanner } from "./projects/scanner"
+export { DevBuddyLayer } from "./layer"
+export { DevBuddyProjectStore } from "./storage/project-store"
+export { DevBuddyProjects } from "./projects/registry"
+export { DevBuddyScanner } from "./projects/scanner"
 export type { ProjectRow } from "./storage/project-store"
 export type { ProjectMeta } from "./core/types"
 ```
 
-#### 1g. `packages/devintel/src/schema.ts`
+#### 1g. `packages/devbuddy/src/schema.ts`
 
 Effect Schema definitions for the Project data type (used by the TUI, API, and storage layers):
 
@@ -177,13 +177,13 @@ export type Project = typeof Project.Type
 
 | Action | Create |
 |--------|--------|
-| Create | `packages/devintel/package.json` |
-| Create | `packages/devintel/tsconfig.json` |
-| Create | `packages/devintel/src/index.ts` |
-| Create | `packages/devintel/src/schema.ts` |
-| Create | `packages/devintel/src/core/types.ts` |
-| Create | `packages/devintel/src/core/id.ts` |
-| Create | `packages/devintel/src/core/errors.ts` |
+| Create | `packages/devbuddy/package.json` |
+| Create | `packages/devbuddy/tsconfig.json` |
+| Create | `packages/devbuddy/src/index.ts` |
+| Create | `packages/devbuddy/src/schema.ts` |
+| Create | `packages/devbuddy/src/core/types.ts` |
+| Create | `packages/devbuddy/src/core/id.ts` |
+| Create | `packages/devbuddy/src/core/errors.ts` |
 
 **Dependencies:** Step 0
 
@@ -195,7 +195,7 @@ export type Project = typeof Project.Type
 
 Define the single `dev_intel_project` Drizzle table.
 
-**File:** `packages/devintel/src/storage/schema.sql.ts`
+**File:** `packages/devbuddy/src/storage/schema.sql.ts`
 
 Table columns:
 
@@ -217,7 +217,7 @@ Index: none required — queried by `id` (PK) or `worktree_path` (unique scan).
 ```ts
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core"
 
-export const DevIntelProjectTable = sqliteTable("dev_intel_project", {
+export const DevBuddyProjectTable = sqliteTable("dev_intel_project", {
   id: text().primaryKey(),
   opencode_project_id: text(),
   worktree_path: text().notNull(),
@@ -233,7 +233,7 @@ export const DevIntelProjectTable = sqliteTable("dev_intel_project", {
 
 | Action | Create |
 |--------|--------|
-| Create | `packages/devintel/src/storage/schema.sql.ts` |
+| Create | `packages/devbuddy/src/storage/schema.sql.ts` |
 
 **Dependencies:** Step 1 (types.ts not needed by schema, but directory structure must exist)
 
@@ -245,7 +245,7 @@ export const DevIntelProjectTable = sqliteTable("dev_intel_project", {
 
 #### 3a. Migration Runner
 
-**File:** `packages/devintel/src/storage/migration.ts`
+**File:** `packages/devbuddy/src/storage/migration.ts`
 
 A migration system that:
 - Creates a `dev_intel_migration` tracking table if absent
@@ -262,7 +262,7 @@ Exports:
 
 #### 3b. Phase 1 Migration
 
-**File:** `packages/devintel/src/storage/migrations/001_project_table.ts`
+**File:** `packages/devbuddy/src/storage/migrations/001_project_table.ts`
 
 Creates only the `dev_intel_project` table:
 
@@ -285,9 +285,9 @@ Migration ID: `"20260614_001_dev_intel_project"`
 
 | Action | Create |
 |--------|--------|
-| Create | `packages/devintel/src/storage/migration.ts` |
-| Create | `packages/devintel/src/storage/migrations/` (directory) |
-| Create | `packages/devintel/src/storage/migrations/001_project_table.ts` |
+| Create | `packages/devbuddy/src/storage/migration.ts` |
+| Create | `packages/devbuddy/src/storage/migrations/` (directory) |
+| Create | `packages/devbuddy/src/storage/migrations/001_project_table.ts` |
 
 **Dependencies:** Step 2 (schema.sql.ts for reference, but migration uses raw SQL)
 
@@ -297,39 +297,39 @@ Migration ID: `"20260614_001_dev_intel_project"`
 
 ### Step 4: Database Connection
 
-**File:** `packages/devintel/src/storage/db.ts`
+**File:** `packages/devbuddy/src/storage/db.ts`
 
-Establishes a SQLite connection via `@effect/sql-sqlite-bun` with auto-migration. Uses a separate `devintel.db` file at `Global.Path.data` to avoid schema coupling with OpenCode's own database.
+Establishes a SQLite connection via `@effect/sql-sqlite-bun` with auto-migration. Uses a separate `devbuddy.db` file at `Global.Path.data` to avoid schema coupling with OpenCode's own database.
 
 Key behaviors:
 - Opens WAL mode, sets `synchronous = NORMAL`, `busy_timeout = 5000`, `foreign_keys = ON`
 - On first connect: detects absence of `dev_intel_project` table, runs full migration chain
 - On subsequent connects: runs pending migrations
-- Exposes `DevIntelDb.Service` — a `DatabaseShape` with Drizzle query builder
+- Exposes `DevBuddyDb.Service` — a `DatabaseShape` with Drizzle query builder
 
 ```ts
-export class Service extends Context.Service<Service, Interface>()("@opencode/v2/devintel/Database") {}
+export class Service extends Context.Service<Service, Interface>()("@opencode/v2/devbuddy/Database") {}
 
 // Layer that takes a filename (for testability)
 export function layerFromPath(filename: string): Layer.Layer<Service>
 
-// Default layer using Global.Path.data + "devintel.db"
+// Default layer using Global.Path.data + "devbuddy.db"
 export const defaultLayer: Layer.Layer<Service>
 ```
 
 | Action | Create |
 |--------|--------|
-| Create | `packages/devintel/src/storage/db.ts` |
+| Create | `packages/devbuddy/src/storage/db.ts` |
 
 **Dependencies:** Step 3 (migration runner + migration file)
 
-**Completion:** `DevIntelDb.defaultLayer` provides a working `DatabaseShape` with the `dev_intel_project` table existing. Connection uses WAL mode and auto-migrates.
+**Completion:** `DevBuddyDb.defaultLayer` provides a working `DatabaseShape` with the `dev_intel_project` table existing. Connection uses WAL mode and auto-migrates.
 
 ---
 
 ### Step 5: Project Store (CRUD)
 
-**File:** `packages/devintel/src/storage/project-store.ts`
+**File:** `packages/devbuddy/src/storage/project-store.ts`
 
 Data-access layer for the `dev_intel_project` table. Pure data access — no business logic.
 
@@ -366,7 +366,7 @@ export interface UpsertInput {
 
 | Action | Create |
 |--------|--------|
-| Create | `packages/devintel/src/storage/project-store.ts` |
+| Create | `packages/devbuddy/src/storage/project-store.ts` |
 
 **Dependencies:** Step 2 (schema.sql.ts for table reference), Step 4 (db.ts for DB service)
 
@@ -376,18 +376,18 @@ export interface UpsertInput {
 
 ### Step 6: Project Scanner
 
-**File:** `packages/devintel/src/projects/scanner.ts`
+**File:** `packages/devbuddy/src/projects/scanner.ts`
 
 Filesystem introspection for a given directory. No DB involvement.
 
 | Function | Signature | Description |
 |----------|-----------|-------------|
-| `scan` | `(directory: string) => Effect.Effect<ScanResult>` | Detect VCS type and presence of `.devintel`/`.opencode` dirs |
+| `scan` | `(directory: string) => Effect.Effect<ScanResult>` | Detect VCS type and presence of `.devbuddy`/`.opencode` dirs |
 
 ```ts
 export interface ScanResult {
   name: string
-  hasDevIntel: boolean
+  hasDevBuddy: boolean
   vcsType: string
   vcsRemote?: string
 }
@@ -397,24 +397,24 @@ Scanning logic:
 - Check `.git/` directory → `vcsType = "git"`
 - Check `.hg/` directory → `vcsType = "hg"`
 - Check `.svn/` directory → `vcsType = "svn"`
-- Check `.devintel/` or `.opencode/` → `hasDevIntel = true`
+- Check `.devbuddy/` or `.opencode/` → `hasDevBuddy = true`
 - Name derived from directory basename
 
 All filesystem checks use `fs.promises.access()` wrapped in `Effect.promise`.
 
 | Action | Create |
 |--------|--------|
-| Create | `packages/devintel/src/projects/scanner.ts` |
+| Create | `packages/devbuddy/src/projects/scanner.ts` |
 
 **Dependencies:** Step 1 (core/types.ts for ScanResult type)
 
-**Completion:** `scan()` returns accurate VCS type and Dev-Intel directory presence for any path. Returns `"none"` for non-VCS directories. Never throws — failures are returned as typed errors.
+**Completion:** `scan()` returns accurate VCS type and Dev-Buddy directory presence for any path. Returns `"none"` for non-VCS directories. Never throws — failures are returned as typed errors.
 
 ---
 
 ### Step 7: Project Registry (Service)
 
-**File:** `packages/devintel/src/projects/registry.ts`
+**File:** `packages/devbuddy/src/projects/registry.ts`
 
 Effect Service that wraps the store and scanner into a business-logic layer. This is what other parts of the system interact with.
 
@@ -435,28 +435,28 @@ export interface Interface {
 | `ensureRegistered` | Checks if worktree path is already registered. If yes, returns existing ID. If no, calls `register`. Idempotent. |
 
 ```ts
-export class Service extends Context.Service<Service, Interface>()("@opencode/v2/devintel/Projects") {}
+export class Service extends Context.Service<Service, Interface>()("@opencode/v2/devbuddy/Projects") {}
 
 export const layer: Layer.Layer<Service>
 ```
 
-The layer effect creates the Service, wrapping `DevIntelProjectStore` and `DevIntelScanner`.
+The layer effect creates the Service, wrapping `DevBuddyProjectStore` and `DevBuddyScanner`.
 
 | Action | Create |
 |--------|--------|
-| Create | `packages/devintel/src/projects/registry.ts` |
+| Create | `packages/devbuddy/src/projects/registry.ts` |
 
 **Dependencies:** Step 5 (project-store.ts), Step 6 (scanner.ts), Step 1 (id.ts for ID generation)
 
-**Completion:** `DevIntelProjects.Service` provides the full project registry API. Calling `ensureRegistered()` twice on the same path returns the same ID. Calling `list()` returns all previously registered projects, even across restarts.
+**Completion:** `DevBuddyProjects.Service` provides the full project registry API. Calling `ensureRegistered()` twice on the same path returns the same ID. Calling `list()` returns all previously registered projects, even across restarts.
 
 ---
 
 ### Step 8: Event Observer (Auto-Discovery)
 
-**File:** `packages/devintel/src/observer/session-observer.ts`
+**File:** `packages/devbuddy/src/observer/session-observer.ts`
 
-Subscribes to OpenCode's `SessionEvent.PromptLifecycle.Admitted` events. When a prompt is admitted for a session in a known project directory, calls `DevIntelProjects.ensureRegistered()` to lazily register the project.
+Subscribes to OpenCode's `SessionEvent.PromptLifecycle.Admitted` events. When a prompt is admitted for a session in a known project directory, calls `DevBuddyProjects.ensureRegistered()` to lazily register the project.
 
 ```ts
 export function observe(): Effect.Effect<void>
@@ -465,17 +465,17 @@ export function observe(): Effect.Effect<void>
 Implementation:
 1. `yield* EventV2.Service` to get the events interface
 2. Call `events.listen(listener)` wrapped in `Effect.acquireRelease` for scoped lifecycle
-3. In the listener: filter for `"SessionEvent.PromptLifecycle.Admitted"` type, extract `event.location.directory`, call `DevIntelProjects.ensureRegistered(directory)`
+3. In the listener: filter for `"SessionEvent.PromptLifecycle.Admitted"` type, extract `event.location.directory`, call `DevBuddyProjects.ensureRegistered(directory)`
 4. Ignore events without a recognized project directory
 
-This file depends on `EventV2.Service`, `DevIntelProjects.Service`, and is consumed by the layer.
+This file depends on `EventV2.Service`, `DevBuddyProjects.Service`, and is consumed by the layer.
 
-**Directory:** `packages/devintel/src/observer/` (create)
+**Directory:** `packages/devbuddy/src/observer/` (create)
 
 | Action | Create |
 |--------|--------|
-| Create | `packages/devintel/src/observer/` (directory) |
-| Create | `packages/devintel/src/observer/session-observer.ts` |
+| Create | `packages/devbuddy/src/observer/` (directory) |
+| Create | `packages/devbuddy/src/observer/session-observer.ts` |
 
 **Dependencies:** Step 7 (registry.ts for ensureRegistered), `@opencode-ai/core/event` for `EventV2`
 
@@ -487,14 +487,14 @@ This file depends on `EventV2.Service`, `DevIntelProjects.Service`, and is consu
 
 #### 9a. Plugin Bootstrap
 
-**File:** `packages/devintel/src/tui/plugin.tsx`
+**File:** `packages/devbuddy/src/tui/plugin.tsx`
 
-Registers Dev-Intel's TUI slot handlers. Uses `@opencode-ai/plugin/tui` types.
+Registers Dev-Buddy's TUI slot handlers. Uses `@opencode-ai/plugin/tui` types.
 
 ```ts
 export const plugin: TuiPluginModule = {
-  id: "internal:devintel",
-  tui: DevIntelTuiPlugin,
+  id: "internal:devbuddy",
+  tui: DevBuddyTuiPlugin,
 }
 ```
 
@@ -518,7 +518,7 @@ api.slots.register({
 
 #### 9b. Project List Component
 
-**File:** `packages/devintel/src/tui/project-list.tsx`
+**File:** `packages/devbuddy/src/tui/project-list.tsx`
 
 Solid JSX component that:
 - Shows a "Projects" header
@@ -526,17 +526,17 @@ Solid JSX component that:
 
 ```tsx
 export function ProjectList(props: { api: TuiPluginApi }) {
-  // Reads projects from DevIntelProjects.Service
+  // Reads projects from DevBuddyProjects.Service
   // Renders project names
 }
 ```
 
-The component needs access to `DevIntelProjects.Service`. It calls `DevIntelProjects.list()` and renders the results.
+The component needs access to `DevBuddyProjects.Service`. It calls `DevBuddyProjects.list()` and renders the results.
 
 | Action | Create |
 |--------|--------|
-| Create | `packages/devintel/src/tui/plugin.tsx` |
-| Create | `packages/devintel/src/tui/project-list.tsx` |
+| Create | `packages/devbuddy/src/tui/plugin.tsx` |
+| Create | `packages/devbuddy/src/tui/project-list.tsx` |
 
 **Dependencies:** Step 7 (registry.ts for list()), `@opencode-ai/plugin/tui` for types, `@opentui/solid` for JSX
 
@@ -546,30 +546,30 @@ The component needs access to `DevIntelProjects.Service`. It calls `DevIntelProj
 
 ### Step 10: Effect Layer (Wiring)
 
-**File:** `packages/devintel/src/layer.ts`
+**File:** `packages/devbuddy/src/layer.ts`
 
 Wires all Phase 1 services into a single Effect Layer:
 
 ```ts
 export const layer = Layer.mergeAll(
-  DevIntelDb.defaultLayer,
-  Layer.effect(DevIntelProjects.Service, DevIntelProjects.layer),
+  DevBuddyDb.defaultLayer,
+  Layer.effect(DevBuddyProjects.Service, DevBuddyProjects.layer),
 ).pipe(
   Layer.provideMerge(observerLayer),
 )
 ```
 
-Where `observerLayer` is a `Layer.effectDiscard` that calls `DevIntelSessionObserver.observe()` with a scoped lifecycle.
+Where `observerLayer` is a `Layer.effectDiscard` that calls `DevBuddySessionObserver.observe()` with a scoped lifecycle.
 
 This is the single exported layer that OpenCode imports.
 
 | Action | Create |
 |--------|--------|
-| Create | `packages/devintel/src/layer.ts` |
+| Create | `packages/devbuddy/src/layer.ts` |
 
 **Dependencies:** Step 4 (db.ts), Step 7 (registry.ts), Step 8 (observer)
 
-**Completion:** `DevIntelLayer.layer` compiles and wires DB + Projects + observer. No layer provides circular dependencies.
+**Completion:** `DevBuddyLayer.layer` compiles and wires DB + Projects + observer. No layer provides circular dependencies.
 
 ---
 
@@ -580,16 +580,16 @@ This is the single exported layer that OpenCode imports.
 **File:** `packages/opencode/src/effect/app-runtime.ts`
 
 Two changes:
-1. Add import at top: `import { DevIntelLayer } from "@opencode-ai/devintel"`
-2. Add to `Layer.mergeAll` chain: `.pipe(Layer.provideMerge(DevIntelLayer.layer))`
+1. Add import at top: `import { DevBuddyLayer } from "@opencode-ai/devbuddy"`
+2. Add to `Layer.mergeAll` chain: `.pipe(Layer.provideMerge(DevBuddyLayer.layer))`
 
 #### 11b. Register TUI Plugin
 
 **File:** `packages/tui/src/feature-plugins/builtins.ts`
 
 Two changes:
-1. Add import at top: `import { plugin as DevIntelPlugin } from "@opencode-ai/devintel/tui"`
-2. Add `DevIntelPlugin` to the returned array in `createBuiltinPlugins()`
+1. Add import at top: `import { plugin as DevBuddyPlugin } from "@opencode-ai/devbuddy/tui"`
+2. Add `DevBuddyPlugin` to the returned array in `createBuiltinPlugins()`
 
 | Action | Modify |
 |--------|--------|
@@ -598,7 +598,7 @@ Two changes:
 
 **Dependencies:** Step 9 (plugin.tsx must export plugin), Step 10 (layer.ts must export layer)
 
-**Completion:** `DevIntelLayer.layer` is provided to the AppRuntime. `DevIntelPlugin` is in the builtin plugins list. Dev-Intel runs when OpenCode starts and shows project info in the sidebar.
+**Completion:** `DevBuddyLayer.layer` is provided to the AppRuntime. `DevBuddyPlugin` is in the builtin plugins list. Dev-Buddy runs when OpenCode starts and shows project info in the sidebar.
 
 ---
 
@@ -608,31 +608,31 @@ Two changes:
 
 | # | Path | Purpose |
 |---|------|---------|
-| 1 | `packages/devintel/package.json` | Package manifest |
-| 2 | `packages/devintel/tsconfig.json` | TypeScript config |
-| 3 | `packages/devintel/src/index.ts` | Public API barrel |
-| 4 | `packages/devintel/src/schema.ts` | Effect Schema for Project |
-| 5 | `packages/devintel/src/core/types.ts` | Base types |
-| 6 | `packages/devintel/src/core/id.ts` | ID generation |
-| 7 | `packages/devintel/src/core/errors.ts` | Tagged errors |
-| 8 | `packages/devintel/src/storage/schema.sql.ts` | Drizzle table definition |
-| 9 | `packages/devintel/src/storage/migration.ts` | Migration runner |
-| 10 | `packages/devintel/src/storage/migrations/001_project_table.ts` | Phase 1 migration |
-| 11 | `packages/devintel/src/storage/db.ts` | Database connection + auto-migration |
-| 12 | `packages/devintel/src/storage/project-store.ts` | Project CRUD |
-| 13 | `packages/devintel/src/projects/scanner.ts` | Filesystem scanner |
-| 14 | `packages/devintel/src/projects/registry.ts` | Registry service |
-| 15 | `packages/devintel/src/observer/session-observer.ts` | EventV2 subscription for auto-discovery |
-| 16 | `packages/devintel/src/tui/plugin.tsx` | TUI plugin bootstrap |
-| 17 | `packages/devintel/src/tui/project-list.tsx` | Sidebar project list component |
-| 18 | `packages/devintel/src/layer.ts` | Effect Layer wiring |
+| 1 | `packages/devbuddy/package.json` | Package manifest |
+| 2 | `packages/devbuddy/tsconfig.json` | TypeScript config |
+| 3 | `packages/devbuddy/src/index.ts` | Public API barrel |
+| 4 | `packages/devbuddy/src/schema.ts` | Effect Schema for Project |
+| 5 | `packages/devbuddy/src/core/types.ts` | Base types |
+| 6 | `packages/devbuddy/src/core/id.ts` | ID generation |
+| 7 | `packages/devbuddy/src/core/errors.ts` | Tagged errors |
+| 8 | `packages/devbuddy/src/storage/schema.sql.ts` | Drizzle table definition |
+| 9 | `packages/devbuddy/src/storage/migration.ts` | Migration runner |
+| 10 | `packages/devbuddy/src/storage/migrations/001_project_table.ts` | Phase 1 migration |
+| 11 | `packages/devbuddy/src/storage/db.ts` | Database connection + auto-migration |
+| 12 | `packages/devbuddy/src/storage/project-store.ts` | Project CRUD |
+| 13 | `packages/devbuddy/src/projects/scanner.ts` | Filesystem scanner |
+| 14 | `packages/devbuddy/src/projects/registry.ts` | Registry service |
+| 15 | `packages/devbuddy/src/observer/session-observer.ts` | EventV2 subscription for auto-discovery |
+| 16 | `packages/devbuddy/src/tui/plugin.tsx` | TUI plugin bootstrap |
+| 17 | `packages/devbuddy/src/tui/project-list.tsx` | Sidebar project list component |
+| 18 | `packages/devbuddy/src/layer.ts` | Effect Layer wiring |
 
 ### Files to Modify (2)
 
 | # | Path | Change |
 |---|------|--------|
-| 1 | `packages/opencode/src/effect/app-runtime.ts` | Add import + `Layer.provideMerge(DevIntelLayer.layer)` |
-| 2 | `packages/tui/src/feature-plugins/builtins.ts` | Add import + `DevIntelPlugin` to plugin array |
+| 1 | `packages/opencode/src/effect/app-runtime.ts` | Add import + `Layer.provideMerge(DevBuddyLayer.layer)` |
+| 2 | `packages/tui/src/feature-plugins/builtins.ts` | Add import + `DevBuddyPlugin` to plugin array |
 
 ## Summary: Dependency Graph
 
